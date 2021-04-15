@@ -63,10 +63,15 @@ while (cap.isOpened()):
     if ret == True:
         # Start processing frame
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        thr = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0]
-        edges = cv2.Canny(gray, thr * 1.0, thr * 0.5)
-        cv2.imshow("Frame", edges)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        lower_green = np.array([40, 190, 50])
+        upper_green = np.array([65, 255, 225])
+
+        mask = cv2.inRange(hsv, lower_green, upper_green)
+        res = cv2.bitwise_and(frame, frame, mask = mask)
+
+        cv2.imshow("Frame", res)
 
         # End processing frame
         if cv2.waitKey(25) & 0xFF == ord("q"):
