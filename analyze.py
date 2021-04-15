@@ -37,3 +37,42 @@ for a in sys.argv[1:]:
             sys.exit(3)
     else:
         sys.exit(2)
+
+if "input" not in arg:
+    sys.exit(1)
+
+cap = cv2.VideoCapture(arg["input"])
+total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+frame_pos = 0
+if "start-frame" in arg:
+    frame_start = int(arg["start-frame"]) * cap.get(cv2.CAP_PROP_FPS)
+    if (frame_start >= total_frames) or (frame_start < 0):
+        frame_pos = 0
+    else:
+        frame_pos = frame_start
+
+cap.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
+
+if (cap.isOpened() == False):
+    print("Error opening input video!")
+    sys.exit(4)
+
+while (cap.isOpened()):
+    ret, frame = cap.read()
+    if ret == True:
+        # Start processing frame
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        thr = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0]
+        edges = cv2.Canny(gray, thr * 1.0, thr * 0.5)
+        cv2.imshow("Frame", edges)
+
+        # End processing frame
+        if cv2.waitKey(25) & 0xFF == ord("q"):
+            break
+    else:
+        break
+
+cap.release()
+cv2.destroyAllWindows()
