@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import cv2
 import time
+import math
 
 def get_time(start_time):
     return int((time.time() - start_time) * 1000)
@@ -25,6 +26,44 @@ def get_edges(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     thr = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0]
     return cv2.Canny(gray, 1.0 * thr, 0.5 * thr)
+
+def in_color_range(color, range, offset):
+    low = 1 - offset
+    high = 1 + offset
+    ret = (low * range) <= color <= (high * range)
+    return ret
+
+def quantize_image(img, K):
+    Z = img.reshape((-1, 3))
+    Z = np.float32(Z)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    ret, label, center = cv2.kmeans(Z, K, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+
+    center = np.uint8(center)
+    res = center[label.flatten()]
+    return res.reshape((img.shape))
+
+def get_color_class(color):
+    colors = []
+    colors.append([(32, 217, 220), "yellow"])
+    colors.append([(27, 198, 151), "brown"])
+    colors.append([(77, 193, 191), "green"])
+    colors.append([(94, 205, 172), "blue"])
+    colors.append([(36, 133, 220), "pink"])
+    colors.append([(54, 218, 47), "black"])
+    colors.append([(33, 53, 253), "white"])
+    colors.append([(12, 218, 131), "red"])
+    min = 255 * 3
+    index = -1
+    for i in range(len(colors)):
+        value = abs(colors[i][0][0] - color[0])
+        value += abs(colors[i][0][1] - color[1])
+        value += abs(colors[i][0][2] - color[2])
+        if value < min:
+            min = value
+            index = i
+
+    return colors[index]
 
 start_time = time.time()
 
@@ -105,40 +144,60 @@ while (cap.isOpened()):
 
                 hull = cv2.convexHull(table)
 
-                # (table area / 760) <= ball area <= (table area / 775)
                 table_area = cv2.contourArea(hull)
-                #cnt = cnt[1:]
-                #balls = []
-                #for c in cnt:
-                #    area = cv2.contourArea(c)
-                #    lower = table_area / 1200
-                #    upper = table_area / 700
-                #    if lower <= area <= upper:
-                #        balls.append(c)
 
-                params = cv2.SimpleBlobDetector_Params()
+                neg = cv2.bitwise_not(edges)
+                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+                neg = cv2.erode(neg, kernel, iterations = 1)
+                cnt, hier = cv2.findContours(neg, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-                params.filterByArea = True
-                params.minArea = table_area / 2000 #1200
-                params.maxArea = table_area / 700 #700
+                # (table area / 775) <= ball area <= (table area / 760)
+                min_area = table_area / 7000 #1200
+                max_area = table_area / 1000 #700
+                balls = []
+                colors = []
+                positions = []
 
-                params.filterByCircularity = True
-                params.minCircularity = 0.4 #0.1
-                params.maxCircularity = 1
+                for c in cnt:
+                    c = cv2.convexHull(c)
+                    (x, y), r = cv2.minEnclosingCircle(c)
+                    circle = r * r * math.pi
+                    area = cv2.contourArea(c)
+                    rate = 0.5
+                    if ((1 - rate) * circle) <= area <= ((1 + rate) * circle):
+                        if min_area <= cv2.contourArea(c) <= max_area:
+                            balls.append(c)
+                            positions.append((x, y))
 
-                params.filterByConvexity = True
-                params.minConvexity = 0.87
+                            ball_mask = np.zeros(edges.shape, np.uint8)
+                            cv2.drawContours(ball_mask, [c], -1, 255, -1)
+                            cv2.drawContours(ball_mask, [c], -1, 0, 1)
+                            color = cv2.mean(hsv, mask = ball_mask)
+                            colors.append(color)
 
-                detector = cv2.SimpleBlobDetector_create(params)
-                keypoints = detector.detect(edges)
+                cv2.drawContours(frame, [hull], -1, (255, 0, 0), 2)
 
-                #mask = np.zeros(edges.shape, np.uint8)
-                #mask = cv2.drawContours(mask, [hull], -1, 255, -1)
-                #board = cv2.bitwise_and(frame, frame, mask = mask)
+                for i in range(len(balls)):
+                    c = get_color_class(colors[i])[1]
+                    color = (0, 0, 0)
+                    if c == "yellow":
+                        color = (0, 255, 255)
+                    elif c == "brown":
+                        color = (0, 127, 127)
+                    elif c == "green":
+                        color = (0, 255, 0)
+                    elif c == "blue":
+                        color = (255, 0, 0)
+                    elif c == "pink":
+                        color = (255, 0, 255)
+                    elif c == "black":
+                        color = (0, 0, 0)
+                    elif c == "white":
+                        color = (255, 255, 255)
+                    elif c == "red":
+                        color = (0, 0, 255)
 
-                cv2.drawContours(frame, [hull], -1, (125, 0, 125), 2)
-                #cv2.drawContours(frame, keypoints, -1, (255, 0, 0), 1)
-                frame = cv2.drawKeypoints(frame, keypoints, np.array([]), (255, 0, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+                    cv2.drawContours(frame, [balls[i]], -1, color, 2)
 
             cv2.imshow("Frame", frame)
 
