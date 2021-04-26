@@ -65,6 +65,19 @@ def get_color_class(color):
 
     return colors[index]
 
+def intersection(o1, p1, o2, p2):
+    x = [o2[0] - o1[0], o2[1] - o1[1]]
+    d1 = [p1[0] - o1[0], p1[1] - o1[1]]
+    d2 = [p2[0] - o2[0], p2[1] - o2[1]]
+
+    cross = d1[0] * d2[1] - d1[1] * d2[0]
+    if (abs(cross) < 1e-8)
+        return False
+
+    t1 = (x[0] * d2[1] - x[1] * d2[0]) / cross
+    r = [o1[0] + d1[0] * t1, o1[1] + d1[1] * t1]
+    return r
+
 start_time = time.time()
 
 # checking arguments
@@ -143,6 +156,24 @@ while (cap.isOpened()):
                 table = sorted(cnt, key=lambda x : cv2.contourArea(x), reverse=True)[0]
 
                 hull = cv2.convexHull(table)
+                test = [h[0] for h in hull]
+                test2 = [[x, x + y, y, x - y, -x, -x - y, -y, -x + y]  for x, y in test]
+                points = [0, 0, 0, 0, 0, 0, 0, 0]
+                maxes = test2[0]
+                #(maximize x, x+y, y, x-y, -x, -x-y, -y, -x+y)
+                for i in range(len(test2)):
+                    for j in range(8):
+                        if test2[i][j] > maxes[j]:
+                            points[j] = i
+                            maxes[j] = test2[i][j]
+
+                oct = []
+                for i in range(len(test)):
+                    if i in points:
+                        oct.append(test[i])
+
+                oct = np.array(oct)
+                print(oct)
 
                 table_area = cv2.contourArea(hull)
 
@@ -175,7 +206,7 @@ while (cap.isOpened()):
                             color = cv2.mean(hsv, mask = ball_mask)
                             colors.append(color)
 
-                cv2.drawContours(frame, [hull], -1, (255, 0, 0), 2)
+                cv2.drawContours(frame, [oct], -1, (255, 0, 0), 2)
 
                 for i in range(len(balls)):
                     c = get_color_class(colors[i])[1]
