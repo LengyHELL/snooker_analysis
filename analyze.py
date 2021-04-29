@@ -71,7 +71,7 @@ def intersection(o1, p1, o2, p2):
     d2 = [p2[0] - o2[0], p2[1] - o2[1]]
 
     cross = d1[0] * d2[1] - d1[1] * d2[0]
-    if (abs(cross) < 1e-8)
+    if (abs(cross) < 1e-8):
         return False
 
     t1 = (x[0] * d2[1] - x[1] * d2[0]) / cross
@@ -172,8 +172,38 @@ while (cap.isOpened()):
                     if i in points:
                         oct.append(test[i])
 
-                oct = np.array(oct)
-                print(oct)
+                lengths = []
+                points = []
+                for i in range(len(oct)):
+                    if i == (len(oct) - 1):
+                        j = 0
+                    else:
+                        j = i + 1
+                    a = oct[j][0] - oct[i][0]
+                    b = oct[j][1] - oct[i][1]
+                    lengths.append(math.sqrt(a * a + b * b))
+                    points.append([oct[i], oct[j]])
+
+                points = np.array(points)
+                while len(lengths) > 4:
+                    rm = min(lengths)
+                    points = np.delete(points, lengths.index(rm), 0)
+                    lengths.remove(rm)
+
+                final = []
+                for i in range(len(points)):
+                    if i == (len(points) - 1):
+                        j = 0
+                    else:
+                        j = i + 1
+                    o1 = points[i][0]
+                    p1 = points[i][1]
+                    o2 = points[j][0]
+                    p2 = points[j][1]
+
+                    final.append(intersection(o1, p1, o2, p2))
+
+                final = np.array(final, dtype=np.int32)
 
                 table_area = cv2.contourArea(hull)
 
@@ -206,7 +236,7 @@ while (cap.isOpened()):
                             color = cv2.mean(hsv, mask = ball_mask)
                             colors.append(color)
 
-                cv2.drawContours(frame, [oct], -1, (255, 0, 0), 2)
+                cv2.drawContours(frame, [final], -1, (255, 0, 0), 2) #adjust here
 
                 for i in range(len(balls)):
                     c = get_color_class(colors[i])[1]
