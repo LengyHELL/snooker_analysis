@@ -28,56 +28,29 @@ def intersection(o1, p1, o2, p2):
     r = [o1[0] + d1[0] * t1, o1[1] + d1[1] * t1]
     return r
 
+def get_length(coord1, coord2):
+    return math.sqrt((coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2)
+
 def contour_to_quad(contour):
-    hull = cv2.convexHull(contour)
-    test = [h[0] for h in hull]
-    test2 = [[x, x + y, y, x - y, -x, -x - y, -y, -x + y]  for x, y in test]
-    points = [0, 0, 0, 0, 0, 0, 0, 0]
-    maxes = test2[0]
-    #(maximize x, x+y, y, x-y, -x, -x-y, -y, -x+y)
-    for i in range(len(test2)):
-        for j in range(8):
-            if test2[i][j] > maxes[j]:
-                points[j] = i
-                maxes[j] = test2[i][j]
-
-    oct = []
-    for i in range(len(test)):
-        if i in points:
-            oct.append(test[i])
-
+    coords = np.array([c[0] for c in contour])
     lengths = []
+    for i in range(len(coords)):
+        lengths.append([get_length(coords[i-1], coords[i]), coords[i - 1], coords[i]])
+
+    lengths = sorted(lengths, key=lambda x : x[0], reverse=True)[:4]
+    temp = lengths[1]
+    lengths[1] = lengths[2]
+    lengths[2] = temp
+
     points = []
-    for i in range(len(oct)):
-        if i == (len(oct) - 1):
-            j = 0
-        else:
-            j = i + 1
-        a = oct[j][0] - oct[i][0]
-        b = oct[j][1] - oct[i][1]
-        lengths.append(math.sqrt(a * a + b * b))
-        points.append([oct[i], oct[j]])
+    for i in range(len(lengths)):
+        _, o1, p1 = lengths[i - 1]
+        _, o2, p2 = lengths[i]
+        points.append(intersection(o1, p1, o2, p2))
 
     points = np.array(points)
-    while len(lengths) > 4:
-        rm = min(lengths)
-        points = np.delete(points, lengths.index(rm), 0)
-        lengths.remove(rm)
-
-    final = []
-    for i in range(len(points)):
-        if i == (len(points) - 1):
-            j = 0
-        else:
-            j = i + 1
-        o1 = points[i][0]
-        p1 = points[i][1]
-        o2 = points[j][0]
-        p2 = points[j][1]
-
-        final.append(intersection(o1, p1, o2, p2))
-
-    return np.array(final, dtype=np.int32)
+    points = np.int0(points)
+    return points.reshape(4, 1, 2)
 
 def find_table(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -108,7 +81,8 @@ def find_table(image):
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
-    return contour_to_quad(contours[0])
+    cnt = cv2.convexHull(contours[0])
+    return contour_to_quad(cnt)
 
 def cut_and_warp(image, contour, size):
     pts = contour.reshape(4, 2)
@@ -143,10 +117,10 @@ def cut_and_warp(image, contour, size):
 
 # http://www.flyordie.hu/snooker/
 
-img = load_image("out2.png")
+img = load_image("misc/out.png")
 cnt = find_table(img)
-img = cut_and_warp(img, cnt, (240, 120))
-#img = cv2.drawContours(img, [cnt], -1, (255, 0, 0), 5)
+#img = cut_and_warp(img, cnt, (256, 128))
+img = cv2.drawContours(img, [cnt], -1, (255, 0, 0), 5)
 
 
 plt.imshow(img)
