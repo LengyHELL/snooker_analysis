@@ -4,7 +4,6 @@ import sys
 import math
 import numpy as np
 
-import matplotlib.pyplot as plt
 import cv2
 
 def load_image(location):
@@ -115,15 +114,24 @@ def cut_and_warp(image, contour, size):
     warp = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
     return cv2.resize(warp, size)
 
-# http://www.flyordie.hu/snooker/
+def calculate_diff(p1, p2):
+    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
-img = load_image("misc/out.png")
-cnt = find_table(img)
-#img = cut_and_warp(img, cnt, (256, 128))
-img = cv2.drawContours(img, [cnt], -1, (255, 0, 0), 5)
+def search_template(image, template, threshold=0.9, min_diff=15):
+    w, h, _ = template.shape
 
+    res = cv2.matchTemplate(image, template, cv2.TM_CCORR_NORMED)
+    loc = np.where(res >= threshold)
 
-plt.imshow(img)
-plt.xticks([])
-plt.yticks([])
-plt.show()
+    #print(np.array(loc))
+    points = []
+    for pt in zip(*loc[::-1]):
+        pt = (int(pt[0] + w/2), int(pt[1] + h/2))
+        add = True
+        for p in points:
+            diff = calculate_diff(pt, p)
+            if diff < min_diff:
+                add = False
+        if add:
+            points.append(pt)
+    return np.array(points)
