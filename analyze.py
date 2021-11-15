@@ -32,6 +32,7 @@ def get_length(coord1, coord2):
 
 def contour_to_quad(contour):
     coords = np.array([c[0] for c in contour])
+
     lengths = []
     for i in range(len(coords)):
         lengths.append([get_length(coords[i-1], coords[i]), coords[i - 1], coords[i]])
@@ -45,7 +46,12 @@ def contour_to_quad(contour):
     for i in range(len(lengths)):
         _, o1, p1 = lengths[i - 1]
         _, o2, p2 = lengths[i]
-        points.append(intersection(o1, p1, o2, p2))
+        point = intersection(o1, p1, o2, p2)
+        if point == False:
+            return None
+        if (point[0] < 0) or (point[1] < 0):
+            return None
+        points.append(point)
 
     points = np.array(points)
     points = np.int0(points)
@@ -80,8 +86,17 @@ def find_table(image):
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
+
+    if len(contours) <= 0:
+        return None
+
     cnt = cv2.convexHull(contours[0])
-    return contour_to_quad(cnt)
+
+    quad = contour_to_quad(cnt)
+    if quad is None:
+        return None
+    else:
+        return quad
 
 def cut_and_warp(image, contour, size):
     pts = contour.reshape(4, 2)
