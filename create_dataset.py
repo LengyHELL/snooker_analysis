@@ -3,6 +3,7 @@ import os
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
 import cv2
 from analyze import load_image, find_table, cut_and_warp, search_template, calculate_diff
@@ -50,35 +51,85 @@ for f in files:
     tmp = load_image("misc/templates/yellow_ball_hd.png")
     yellow = search_template(img, tmp, threshold=0.95, min_diff=15) #ok
 
+    balls = []
+    if (len(black) > 0):
+        balls.append(black[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(blue) > 0):
+        balls.append(blue[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(brown) > 0):
+        balls.append(brown[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(green) > 0):
+        balls.append(green[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(pink) > 0):
+        balls.append(pink[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(white) > 0):
+        balls.append(white[0])
+    else:
+        balls.append([0, 0])
+
+    if (len(yellow) > 0):
+        balls.append(yellow[0])
+    else:
+        balls.append([0, 0])
+
+    for i in range(15):
+        if i < len(red):
+            balls.append(red[i])
+        else:
+            balls.append([0, 0])
+    balls = np.array(balls)
+
+    name = f.split(".")[0]
+    cv2.imwrite("./misc/dataset/images/" + name + ".png", img_orig)
+    np.save("./misc/dataset/labels/" + name + ".npy", balls)
+    file = open("./misc/dataset/info.txt", "a")
+    file.write(name + "\n")
+    file.close()
+
     # correction for pesky brown ball
-    temp = brown
-    brown = []
-    for t in temp:
-        add = True
-        for r in red:
-            diff = calculate_diff(t, r)
-            if diff < 15:
-                add = False
-        if add:
-            brown.append(t)
-    brown = np.array(brown)
-    points = brown
-    for p in points:
-        p = (p[0] - 10, p[1] - 10)
-        cv2.rectangle(img, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
+    #temp = brown
+    #brown = []
+    #for t in temp:
+    #    add = True
+    #    for r in red:
+    #        diff = calculate_diff(t, r)
+    #        if diff < 15:
+    #            add = False
+    #    if add:
+    #        brown.append(t)
+    #brown = np.array(brown)
+    #points = brown
+    #for p in points:
+    #    p = (p[0] - 10, p[1] - 10)
+    #    cv2.rectangle(img, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
 
-    print("(%3d/%3d) %10s - %3d" % (index, len(files), f, len(points)))
-    index += 1
+    #print("(%3d/%3d) %10s - %3d" % (index, len(files), f, len(points)))
+    #index += 1
 
-    plt.figure(figsize=(16, 6))
+    #plt.figure(figsize=(16, 6))
 
-    plt.subplot(121)
-    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.xticks([])
-    plt.yticks([])
+    #plt.subplot(121)
+    #plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    #plt.xticks([])
+    #plt.yticks([])
 
-    plt.subplot(122)
-    plt.imshow(cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB))
-    plt.xticks([])
-    plt.yticks([])
-    plt.show()
+    #plt.subplot(122)
+    #plt.imshow(cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB))
+    #plt.xticks([])
+    #plt.yticks([])
+    #plt.show()
