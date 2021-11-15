@@ -51,6 +51,24 @@ for f in files:
     tmp = load_image("misc/templates/yellow_ball_hd.png")
     yellow = search_template(img, tmp, threshold=0.95, min_diff=15) #ok
 
+    # correction for pesky brown ball
+    temp = brown
+    brown = []
+    for t in temp:
+        add = True
+        for r in red:
+            diff = calculate_diff(t, r)
+            if diff < 15:
+                add = False
+        if add:
+            brown.append(t)
+    brown = np.array(brown)
+    points = brown
+    for p in points:
+        p = (p[0] - 10, p[1] - 10)
+        cv2.rectangle(img, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
+    brown = np.array(brown)
+
     balls = []
     if (len(black) > 0):
         balls.append(black[0])
@@ -100,36 +118,3 @@ for f in files:
     file = open("./misc/dataset/info.txt", "a")
     file.write(name + "\n")
     file.close()
-
-    # correction for pesky brown ball
-    #temp = brown
-    #brown = []
-    #for t in temp:
-    #    add = True
-    #    for r in red:
-    #        diff = calculate_diff(t, r)
-    #        if diff < 15:
-    #            add = False
-    #    if add:
-    #        brown.append(t)
-    #brown = np.array(brown)
-    #points = brown
-    #for p in points:
-    #    p = (p[0] - 10, p[1] - 10)
-    #    cv2.rectangle(img, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
-
-    #print("(%3d/%3d) %10s - %3d" % (index, len(files), f, len(points)))
-    #index += 1
-
-    #plt.figure(figsize=(16, 6))
-
-    #plt.subplot(121)
-    #plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    #plt.xticks([])
-    #plt.yticks([])
-
-    #plt.subplot(122)
-    #plt.imshow(cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB))
-    #plt.xticks([])
-    #plt.yticks([])
-    #plt.show()

@@ -22,17 +22,13 @@ labels = []
 images = []
 for f in files:
     array = np.load(dir + "/labels/" + f + ".npy")
-    #array = array / 2
-    array = array[0]
     labels.append(array.flatten())
     image = cv2.imread(dir + "/images/" + f + ".png")
-    #image = cv2.resize(image, (512, 256))
     images.append(image / 255)
 
 labels = np.array(labels)
 images = np.array(images)
 
-print(labels[0])
 border = int(labels.shape[0] * 0.8)
 
 train_images = images[:border]
@@ -51,7 +47,7 @@ model = keras.models.Sequential([
     keras.layers.Dense(176, activation="relu"),
     keras.layers.Dropout(0.2),
     keras.layers.Dense(88, activation="relu"),
-    keras.layers.Dense(2, activation="relu")
+    keras.layers.Dense(44, activation="relu")
 ])
 
 print(model.summary())
@@ -75,7 +71,8 @@ for p in out:
     p = (p[0] - 10, p[1] - 10)
     cv2.rectangle(image, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 1)
 
-for p in test_labels[:1]:
+true = np.int0(np.reshape(test_labels[:1], (-1, 2)))
+for p in true:
     p = (p[0] - 10, p[1] - 10)
     cv2.rectangle(image, p, (p[0] + 20, p[1] + 20), (255, 0, 0), 1)
 
