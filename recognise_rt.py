@@ -34,21 +34,29 @@ while True:
         out = img.copy()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param2=11, minRadius=5, maxRadius=11)
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param1=30, param2=14, minRadius=5, maxRadius=11)
 
         cuts = []
+        rects = []
         if circles is not None:
             circles = np.round(circles[0,:]).astype("int")
 
             for (x, y, r) in circles:
-                #cv2.circle(out, (x, y), r, (255, 0, 0), 1)
                 x, y, w, h = (x-9, y-9, 18, 18)
-                cuts.append(img[y:y+h, x:x+w])
-                cv2.rectangle(out, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                if (x >= 0) and (y >= 0) and ((x + w) < img.shape[1]) and ((y + h) < img.shape[0]):
+                    cuts.append(img[y:y+h, x:x+w])
+                    rects.append(((x, y), (x+w, y+h)))
 
             cuts = np.array(cuts)
             norms = np.array(cuts / 255)
-            pred = model.predict(norms)
+            if len(norms) > 0:
+                pred = model.predict(norms)
+                for i in range(len(rects)):
+                    x, y = rects[i][0]
+                    cv2.rectangle(out, rects[i][0], rects[i][1], (0, 0, 255), 2)
+                    cv2.putText(out, labels[np.argmax(pred[i])], (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+            else:
+                pred = np.array([])
             cv2.imshow("screen", cv2.resize(out, (900, 450)))
         else:
             cv2.imshow("screen", cv2.resize(out, (900, 450)))
