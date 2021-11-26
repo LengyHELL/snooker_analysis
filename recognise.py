@@ -4,7 +4,6 @@ import sys
 
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from tensorflow import keras
@@ -14,46 +13,54 @@ from analyze import load_image, find_table, cut_and_warp
 
 # http://www.flyordie.hu/snooker/
 
-dir = "./misc/images"
-files = os.listdir(dir)
-index = 1
-
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 model = keras.models.load_model("classifier.h5")
 
-for f in files:
-    start_time = time.time()
-    img = load_image(dir + "/" + f)
-    cnt = find_table(img)
+img = load_image("misc/input_screen.png")
+img_orig = cv2.resize(img, (800, 450))
+
+data = []
+
+start_time = time.time()
+cnt = find_table(img)
+if cnt is not None:
     img = cut_and_warp(img, cnt, (1024, 512))
 
     out = img.copy()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param2=15, minRadius=5, maxRadius=11)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param1=30, param2=14, minRadius=5, maxRadius=11)
 
     cuts = []
-    cut = img.copy()
+    rects = []
     if circles is not None:
         circles = np.round(circles[0,:]).astype("int")
 
         for (x, y, r) in circles:
-            cv2.circle(out, (x, y), r, (255, 0, 0), 1)
-            x = x - 9
-            y = y - 9
-            w = 18
-            h = 18
-            cuts.append(img[y:y+h, x:x+w])
-    cuts = np.array(cuts)
-    norms = np.array(cuts / 255)
-    pred = model.predict(norms)
+            x, y, w, h = (x-9, y-9, 18, 18)
+            if (x >= 0) and (y >= 0) and ((x + w) < img.shape[1]) and ((y + h) < img.shape[0]):
+                cuts.append(img[y:y+h, x:x+w])
+                rects.append(((x, y), (x+w, y+h)))
 
-    print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
+        cuts = np.array(cuts)
+        norms = np.array(cuts / 255)
+        if len(norms) > 0:
+            pred = model.predict(norms)
+            for i in range(len(rects)):
+                x, y = rects[i][0]
+                xx, yy = rects[i][1]
+                data.append([int((x + xx) / 2), int((y + yy) / 2), labels[np.argmax(pred[i])]])
+                cv2.rectangle(out, rects[i][0], rects[i][1], (0, 0, 255), 2)
+                cv2.putText(out, labels[np.argmax(pred[i])], (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+        else:
+            pred = np.array([])
+        cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
+    else:
+        cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
+else:
+    cv2.imwrite("./misc/output.png", img_orig)
 
-    #for i in range(len(cuts)):
-    #    plt.figure(figsize=(10, 5))
-    #    print(labels[np.argmax(pred[i])])
-    #    plt.imshow(cv2.cvtColor(cuts[i], cv2.COLOR_BGR2RGB))
-    #    plt.xticks([])
-    #    plt.yticks([])
-    #    plt.show()
+print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
+data.sort(key=lambda x : x[2])
+for d in data:
+    print("|%-10s|%-5d|%-5d|" % (d[2], d[0], d[1]))
