@@ -1,0 +1,117 @@
+% !TeX root = ./thesis.tex
+% !TeX spellcheck = hu_HU
+% !TeX encoding = UTF-8
+% !TeX program = pdflatex
+% !BIB program = bibtex
+%TODO Change language to en_GB (recommended) or en_US for English documents
+\documentclass[11pt,a4paper,oneside]{report}             % Egyoldalas (javasolt)
+%\documentclass[11pt,a4paper,twoside,openright]{report}  % Duplex
+
+\input{include/packages}
+
+
+%TODO Saját adataiddal töltsd ki a kommentek szerint
+%--------------------------------------------------------------------------------------
+\newcommand{\szerzoVezeteknev}{Lengyel}
+\newcommand{\szerzoKeresztnev}{Márk}
+\newcommand{\szerzoNeptun}{LNXQYO}
+
+\newcommand{\szakirany}{\merninf{}} % automat vagy infokom
+
+\newcommand{\konzulensAMegszolitas}{}
+\newcommand{\konzulensAVezeteknev}{Hollósi}
+\newcommand{\konzulensAKeresztnev}{János}
+\newcommand{\konzulensBMegszolitas}{}
+\newcommand{\konzulensBVezeteknev}{}
+\newcommand{\konzulensBKeresztnev}{}
+\newcommand{\konzulensCMegszolitas}{}
+\newcommand{\konzulensCVezeteknev}{}
+\newcommand{\konzulensCKeresztnev}{}
+
+\newcommand{\cim}{Dolgozat címe} % Cím
+\newcommand{\tanszek}{\szeint} % automatizálási (\szeaut) vagy távközlési (\szetat)
+\newcommand{\doktipus}{\szakdolgozat} % Dokumentum típusa (\szakdolgozat, \diplomaterv vagy \dolgozat)
+\newcommand{\szak}{\minfBSc} % villamosmérnöki msc (\villMSc) vagy villamosmérnöki bsc (\villBSc)
+
+%TODO Nyelv beállítása
+% Beállítások magyar nyelvű dolgozathoz
+\input{include/thesis-hu}
+% Settings for English documents
+%\input{include/thesis-en}
+
+
+\newcommand{\szerzoMeta}{\szerzoVezeteknev{} \szerzoKeresztnev} % egy szerző esetén TODO@FMA két szerző
+\input{include/preamble} % beállítások, nem kell vele foglalkoznod remélhetőleg, de ha valami latex hekkelésre vagy új parancsra van szükséged annak itt a helye
+
+
+%--------------------------------------------------------------------------------------
+% Itt kezdődik a dolgozat
+%--------------------------------------------------------------------------------------
+\begin{document}
+
+%TODO Feladatkiíró lap helye, csak a nyomtatott verzijóba kerül az eredeti példány
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%\include{include/project}
+
+
+\selectthesislanguage
+
+
+% Címoldal
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\include{include/titlepage}
+
+
+% Tartalomjegyzék
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\tableofcontents\vfill
+
+
+% Nyilatkozat és Kivonat
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%\include{include/declaration} % ez legenerálódik magától a fentebb megadott adatok alapján
+%\include{content/abstract} %TODO ezt át kell írnod
+
+
+% A dolgozat lényegi része
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\pagenumbering{arabic}
+
+%TODO készítsd el a saját munkád
+\include{content/bevezetes}
+\include{content/koncepcio}
+\include{content/analizalas}
+\include{content/megvalositas}
+%\include{content/introduction}
+%\include{content/thesis-format}
+%\include{content/latex-tools}
+%\include{content/template-usage}
+
+
+% Köszönetnyilvánítás - opcionális
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%\include{content/acknowledgement}
+
+
+% Ábrák listája - a word-ös sablon szerint szükséges
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\listoffigures\addcontentsline{toc}{chapter}{\listfigurename}
+
+
+% Táblázatok listája - opcionális
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%\listoftables\addcontentsline{toc}{chapter}{\listtablename}
+
+
+% Irodalomjegyzék
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliography{bib/mybib}
+
+
+% Függelékek
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%\include{content/appendices}
+
+%\label{page:last}
+\end{document}

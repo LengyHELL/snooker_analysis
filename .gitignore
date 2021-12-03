@@ -1,5 +1,11 @@
 /misc
 /**/__pycache__
 /new.png
-/sze-thesis-template-latex-master
 .vscode
+/old_scirptsgit
+
+#latex
+/sze-thesis-template-latex-master/old_content/
+/sze-thesis-template-latex-master/*.gz
+/sze-thesis-template-latex-master/*.pdf
+/sze-thesis-template-latex-master/*.thm

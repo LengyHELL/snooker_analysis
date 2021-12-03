@@ -1,0 +1,24 @@
+bevezetés
+    snooker
+    python?
+    opencv
+    tensorflow
+
+golyók pozíciójának felismerése
+    ismertetés
+    tábla felismerése
+    golyók azonosítása, módszerek
+        template match - no good
+        finding circles + template - no good
+        nn + circle finding - lesgo
+
+analizálás
+    bruh aeugh
+
+megvalósítás
+    én módszerem
+    tábla felimserés
+    golyó azonosítás
+
+problémák
+összefoglalás
