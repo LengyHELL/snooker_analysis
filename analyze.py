@@ -69,19 +69,19 @@ def find_table(image):
     threshold = cv2.threshold(image_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0]
     result = cv2.Canny(image_gray, 1.0 * threshold, 0.5 * threshold)
 
-    kernel = np.array([ [0, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 0]], dtype=np.uint8)
-
-    result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
-    kernel = np.array([ [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0],
-                        [1, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0]], dtype=np.uint8)
-    result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
+    #kernel = np.array([ [0, 0, 1, 0, 0],
+    #                    [0, 0, 1, 0, 0],
+    #                    [0, 0, 1, 0, 0],
+    #                    [0, 0, 1, 0, 0],
+    #                    [0, 0, 1, 0, 0]], dtype=np.uint8)
+    #
+    #result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
+    #kernel = np.array([ [0, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0],
+    #                    [1, 1, 1, 1, 1],
+    #                    [0, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0]], dtype=np.uint8)
+    #result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
 
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
