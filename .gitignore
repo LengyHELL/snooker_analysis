@@ -9,3 +9,11 @@
 /sze-thesis-template-latex-master/*.gz
 /sze-thesis-template-latex-master/*.pdf
 /sze-thesis-template-latex-master/*.thm
+/sze-thesis-template-latex-master/*.aux
+/sze-thesis-template-latex-master/**/*.aux
+/sze-thesis-template-latex-master/*.bbl
+/sze-thesis-template-latex-master/*.blg
+/sze-thesis-template-latex-master/*.lof
+/sze-thesis-template-latex-master/*.log
+/sze-thesis-template-latex-master/*.out
+/sze-thesis-template-latex-master/*.toc
