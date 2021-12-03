@@ -1,4 +1,5 @@
 /misc
-/__pycache__
+/**/__pycache__
 /new.png
 /sze-thesis-template-latex-master
+.vscode

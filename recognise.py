@@ -52,6 +52,7 @@ if cnt is not None:
                 data.append([int((x + xx) / 2), int((y + yy) / 2), labels[np.argmax(pred[i])]])
                 cv2.rectangle(out, rects[i][0], rects[i][1], (0, 0, 255), 2)
                 cv2.putText(out, labels[np.argmax(pred[i])], (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+                #cv2.circle(out, (x + 9, y + 9), 10, (0, 0, 255), 2)
         else:
             pred = np.array([])
         cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))

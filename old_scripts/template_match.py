@@ -23,18 +23,20 @@ labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 templates = []
 templates.append([0, load_image("misc/templates/black_ball_hd.png"), 0.855, False])
 templates.append([1, load_image("misc/templates/blue_ball_hd.png"), 0.92, False])
-templates.append([2, load_image("misc/templates/brown_ball_hd.png"), 0.905, False])
+templates.append([2, load_image("misc/templates/brown_ball_hd.png"), 0.91, False])
 templates.append([3, cv2.cvtColor(load_image("misc/templates/green_ball_hd.png"), cv2.COLOR_BGR2HSV), 0.985, True])
+#templates.append([3, load_image("misc/templates/green_ball_hd.png"), 0.9541, False])
 templates.append([4, load_image("misc/templates/pink_ball_hd.png"), 0.97, False])
-templates.append([5, load_image("misc/templates/red_ball_hd.png"), 0.92, False])
+templates.append([5, load_image("misc/templates/red_ball_hd.png"), 0.89, False])
 templates.append([6, load_image("misc/templates/white_ball_hd.png"), 0.97, False])
 templates.append([7, load_image("misc/templates/yellow_ball_hd.png"), 0.95, False])
 
 for f in files:
+    img = load_image(dir + "/" + f)
+
     start_time = time.time()
     part_time = time.time()
 
-    img = load_image(dir + "/" + f)
     cnt = find_table(img)
     img = cut_and_warp(img, cnt, (1024, 512))
     img_orig = img.copy()
@@ -49,10 +51,10 @@ for f in files:
             pts = search_template(img_hsv, t[1], threshold=t[2], min_diff=8)
         else:
             pts = search_template(img, t[1], threshold=t[2], min_diff=8)
-
-        ids = np.uint0(np.ones((pts.shape[0], 1)) * t[0])
-        pts = np.c_[pts, ids].astype("uint16")
-        points.append(pts)
+        if pts.shape[0] > 0:
+            ids = np.uint0(np.ones((pts.shape[0], 1)) * t[0])
+            pts = np.c_[pts, ids].astype("uint16")
+            points.append(pts)
 
     # correction for brown ball
     i = 0
@@ -78,8 +80,10 @@ for f in files:
 
 
     for p in points:
-        p = (p[0] - 10, p[1] - 10)
-        cv2.rectangle(img, p, (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
+        if (p[2] == 2):
+            p = (p[0] - 10, p[1] - 10, p[2])
+            cv2.rectangle(img, p[:2], (p[0] + 20, p[1] + 20), (0, 0, 255), 2)
+            cv2.putText(img, labels[p[2]], (p[0], p[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
 
     print("%-30s | %d ms" % ("Rectangles drawn", (time.time() - part_time) * 1000))
     print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
@@ -101,6 +105,7 @@ for f in files:
     #plt.yticks([])
 
     #plt.subplot(122)
+    cv2.imwrite("out.png", img)
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.xticks([])
     plt.yticks([])
