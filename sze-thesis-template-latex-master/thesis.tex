@@ -95,18 +95,23 @@
 
 % Ábrák listája - a word-ös sablon szerint szükséges
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\listoffigures\addcontentsline{toc}{chapter}{\listfigurename}
+\clearpage\phantomsection
+\listoffigures
+\addcontentsline{toc}{chapter}{\listfigurename}
 
 
 % Táblázatok listája - opcionális
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%\listoftables\addcontentsline{toc}{chapter}{\listtablename}
+%\clearpage\phantomsection
+%\listoftables
+%\addcontentsline{toc}{chapter}{\listtablename}
 
 
 % Irodalomjegyzék
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\addcontentsline{toc}{chapter}{\bibname}
+\clearpage\phantomsection
 \bibliography{bib/mybib}
+\addcontentsline{toc}{chapter}{\bibname}
 
 
 % Függelékek
