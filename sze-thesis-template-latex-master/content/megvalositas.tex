@@ -83,7 +83,7 @@ edges = cv2.Canny(image_gray, 100, 200)
     \label{fig:bemeneti_kep_edge}
 \end{figure}
 
-\par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszük a konvex körvonalát, ezzel az esetleges szakadozott kontúrokat feljavítva. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, kiválasszuk a körvonalak közül.
+\par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszük a konvex körvonalát, azok egyszerűsítése, esetleges konkáv alakzatok megszüntetése érdekében. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, kiválasszuk a körvonalak közül.
 \newline Az említett folyamatokat a következő függvényekkel hajtom végre,
 
 \vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
@@ -93,4 +93,25 @@ contours = [cv2.convexHull(c) for c in contours]
 contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 \end{lstlisting}
 
-\par A \lstinline{cv2.findContours} függvény \cite{cv2_find_contours, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze.
+\par A \lstinline{cv2.findContours} függvény \cite{cv2_find_contours, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonalát a \lstinline{cv2.convexHull} függvény \cite{cv2_convex_hull,SKLANSKY198279} segítségével kapjuk meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
+\par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthetjük az alakzatunkat (pl.: kotúr koordináta láncolat pontjainak csökkentése), ezzel a következő műveleteket felgyorsítva.
+\par A legnagyobb kontúr kiválasztásához tudnunk kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{cv2_contour_area} számolhatjuk ki. Ezt megtesszük minden eddigi kontúrral úgy, hogy szimplán paraméterként adjuk a függvénynek. A kiszámolt területek közül kiválasszuk a legnagyobbat, majd annak kontúr koordináta láncolatát eltároljuk. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_contour.png}
+    \caption{A felismert asztal kontúrja a bináris képen, piros körvonallal keretezve.}
+    \label{fig:bemeneti_kep_contour}
+\end{figure}
+
+\par A \lstinline{cv2.contourArea} függvény a Surveyor's Area algoritmust \cite{braden1986surveyor} használja az alakzatok területének számolásához. Ez az algoritmus a Green-tétel egy speciális esete, amely alkalmazható egyszerű sokszögekre.
+\newline Az algoritmus függvéyne a következő,
+
+\begin{equation}
+    A = \sum^n_{k=0}\frac{(x_{k+1} + x_k)(y_{k+1} - y_k)}{2}
+    \label{for:green_formula}
+\end{equation}
+
+\par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhetjük, hogy a $k = n+1$ elem megegyezik a $k = 0$ elemmel.
+
+\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúrunk téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában ki tudjuk vágni a képet, meg kell keresnünk azt a négyszöget, amely a kontúrt határolja.

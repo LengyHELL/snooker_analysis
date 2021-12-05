@@ -87,6 +87,7 @@ def find_table(image):
 
     contours = [cv2.convexHull(c) for c in contours]
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
+    cv2.imwrite("output.png", cv2.drawContours(cv2.cvtColor(result, cv2.COLOR_GRAY2BGR), contours, 0, (0, 0, 255), 2))
 
     if len(contours) <= 0:
         return None
