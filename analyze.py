@@ -85,12 +85,14 @@ def find_table(image):
 
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
+    contours = [cv2.convexHull(c) for c in contours]
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 
     if len(contours) <= 0:
         return None
 
-    cnt = cv2.convexHull(contours[0])
+    #cnt = cv2.convexHull(contours[0])
+    cnt = contours[0]
 
     quad = contour_to_quad(cnt)
     if quad is None:

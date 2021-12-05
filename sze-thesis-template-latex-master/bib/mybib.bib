@@ -33,6 +33,14 @@
   publisher = {OpenCV}
 }
 
+@misc{cv2_find_contours,
+  key       = {OpenCV Find Contours},
+  title     = {{OpenCV} find contours},
+  url       = {https://docs.opencv.org/3.4/d3/dc0/group__imgproc__shape.html#ga17ed9f5d79ae97bd4c7cf18403e1689a},
+  journal   = {OpenCV Documentation},
+  publisher = {OpenCV}
+}
+
 @misc{cv2_in_range,
   key       = {OpenCV Masking},
   title     = {{OpenCV} masking},
@@ -113,12 +121,41 @@
   pages     = 166
 }
 
+@article{SKLANSKY198279,
+  title    = {Finding the convex hull of a simple polygon},
+  journal  = {Pattern Recognition Letters},
+  volume   = {1},
+  number   = {2},
+  pages    = {79-83},
+  year     = {1982},
+  issn     = {0167-8655},
+  doi      = {https://doi.org/10.1016/0167-8655(82)90016-2},
+  url      = {https://www.sciencedirect.com/science/article/pii/0167865582900162},
+  author   = {Jack Sklansky},
+  keywords = {Pattern recognition, computational geometry, convex hull, simple polygon, algorithmic complexity},
+  abstract = {We describe a new algorithm for finding the convex hull of any simple polygon specified by a sequence of m vertices. An earlier convex hull finder of ours is limited to polygons which remain simple (i.e., nonselfintersecting) when locally non-convex vertices are removed. In this paper we amend our earlier algorithm so that it finds with complexity O(m) the convex hull of any simple polygon, while retaining much of the simplicity of the earlier algorithm.}
+}
+
 @manual{snooker_rules,
   author    = {WPBSA},
   publisher = {The World Professional Billiards \& Snooker Association Limited},
   title     = {Official Rules of the Games of Snooker and English Billiards},
   year      = {2019},
   url       = {https://wpbsa.com/wp-content/uploads/WPBSA-Official-Rules-of-the-Games-of-Snooker-and-Billiards-2020.pdf}
+}
+
+@article{SUZUKI198532,
+  title    = {Topological structural analysis of digitized binary images by border following},
+  journal  = {Computer Vision, Graphics, and Image Processing},
+  volume   = {30},
+  number   = {1},
+  pages    = {32-46},
+  year     = {1985},
+  issn     = {0734-189X},
+  doi      = {https://doi.org/10.1016/0734-189X(85)90016-7},
+  url      = {https://www.sciencedirect.com/science/article/pii/0734189X85900167},
+  author   = {Satoshi Suzuki and KeiichiA be},
+  abstract = {Two border following algorithms are proposed for the topological analysis of digitized binary images. The first one determines the surroundness relations among the borders of a binary image. Since the outer borders and the hole borders have a one-to-one correspondence to the connected components of 1-pixels and to the holes, respectively, the proposed algorithm yields a representation of a binary image, from which one can extract some sort of features without reconstructing the image. The second algorithm, which is a modified version of the first, follows only the outermost borders (i.e., the outer borders which are not surrounded by holes). These algorithms can be effectively used in component counting, shrinking, and topological structural analysis of binary images, when a sequential digital computer is used.}
 }
 
 @misc{template_match,
@@ -152,4 +189,3 @@
   keywords = {Hough Transform methods, circle detection, performance},
   abstract = {A variety of circle detection methods which are based on variations of the Hough Transform are investigated. The five methods considered are the standard Hough Transform, the Fast Hough Transform of Li et al.1, a two stage Hough method, and two space saving approaches based on the method devised by Gerig and Klein2. The performance of each of the methods has been compared on synthetic imagery and real images from a metallurgical application. Figures and comments are presented concerning the accuracy, reliability, computational efficiency and storage requirements of each of the methods.}
 }
-

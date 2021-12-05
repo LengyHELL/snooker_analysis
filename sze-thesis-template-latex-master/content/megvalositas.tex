@@ -60,7 +60,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
 image_gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
 
-result = cv2.Canny(image_gray, 100, 200)
+edges = cv2.Canny(image_gray, 100, 200)
 \end{lstlisting}
 
 \par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{cv2_cvt_color} végezzük el, majd ezután megkeressük az éleket a képen Canny éldetektálás \cite{cv2_canny,canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
@@ -74,7 +74,7 @@ result = cv2.Canny(image_gray, 100, 200)
     \item Kettős küszöbölés élek szűréséhez
 \end{itemize}
 
-\par Az éldetektálásnál meg kell adnunk a függvénynek a szürkeárnyalatos képünket, továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, azt felvesszük az élek közé, ha az alsó küszöb alatt van eldobjuk és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján vesszük fel élnek. Az éldetektálással kapott kép a \ref{fig:bemeneti_kep_edge} ábrán látható.
+\par Az éldetektálásnál meg kell adnunk a függvénynek a szürkeárnyalatos képünket (\lstinline{image_gray}), továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, azt felvesszük az élek közé, ha az alsó küszöb alatt van eldobjuk és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján vesszük fel élnek. Az éldetektálással kapott kép (\lstinline{edges}) a \ref{fig:bemeneti_kep_edge} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -82,3 +82,15 @@ result = cv2.Canny(image_gray, 100, 200)
     \caption{A Canny éldetektálás után kapott kép.}
     \label{fig:bemeneti_kep_edge}
 \end{figure}
+
+\par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszük a konvex körvonalát, ezzel az esetleges szakadozott kontúrokat feljavítva. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, kiválasszuk a körvonalak közül.
+\newline Az említett folyamatokat a következő függvényekkel hajtom végre,
+
+\vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
+contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+contours = [cv2.convexHull(c) for c in contours]
+contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
+\end{lstlisting}
+
+\par A \lstinline{cv2.findContours} függvény \cite{cv2_find_contours, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze.
