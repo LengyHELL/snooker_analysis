@@ -7,7 +7,7 @@
 #latex
 /sze-thesis-template-latex-master/old_content/
 /sze-thesis-template-latex-master/*.gz
-/sze-thesis-template-latex-master/*.pdf
+/sze-thesis-template-latex-master/original.pdf
 /sze-thesis-template-latex-master/*.thm
 /sze-thesis-template-latex-master/*.aux
 /sze-thesis-template-latex-master/**/*.aux

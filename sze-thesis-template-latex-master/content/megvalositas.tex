@@ -18,11 +18,11 @@ import cv2
 
 \par A \lstinline{math} könyvtár segítségével matematikai műveleteket (gyökvonás, szinusz, koszinusz) tudunk végezni, a \lstinline{numpy} könyvtár a tömbök, mátrixok kezelését, azokkal való műveleteket segíti és gyorsítja, a \lstinline{cv2} pedig az OpenCV eszközeit teszi elérhetővé.
 
-\subsection{Az asztal kivágása}
+\subsection{Az asztal kontúrjának megkeresése}
 Annak érdekében, hogy a nyers képből kinyerjük a játékterületet, azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
 \par A betöltött kép tömbjének alakja megegyezik a kép szélességével és magasságával, továbbá az intenzitási értékekkel, tehát ha betöltünk egy 1024 x 512 méretű RGB képet, annak tömbjének az első és második dimenziója 1024 és 512, a harmadik pedig az RGB (Piros, Zöld, Kék) intenzitásoknak megfelelően 3 méretű.
 \par Fontos megjegyezni, hogy az OpenCV a képeket betöltéskor BGR formátumban tölti be, ez az elnevezésből adódóan annyiban tér el az RGB formátumtól, hogy a piros (R) és kék (B) színcsatornák fel vannak cserélve.
-\par A nyers bemeneti kép megszerzése után készen állunk az asztal megkeresésére és kivágására. Első lépésként a képet átalakítjuk HSV formátumra, majd megadjuk az alsó és felső intenzitási értékhatárokat, amelyből elkészítjük a maszkot. Ezután maszkoljuk az eredeti képet a maszk segítségével.
+\par A nyers bemeneti kép megszerzése után készen állunk az asztal kontúrjának megkeresésére. Első lépésként a képet átalakítjuk HSV formátumra, majd megadjuk az alsó és felső intenzitási értékhatárokat, amelyből elkészítjük a maszkot. Ezután maszkoljuk az eredeti képet a maszk segítségével.
 \newline Ezt a következő kódsorokkal végezhetjük el.
 
 
@@ -114,4 +114,52 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 
 \par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhetjük, hogy a $k = n+1$ elem megegyezik a $k = 0$ elemmel.
 
-\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúrunk téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában ki tudjuk vágni a képet, meg kell keresnünk azt a négyszöget, amely a kontúrt határolja.
+\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúrunk téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában ki tudjuk vágni a képet, meg kell keresnünk azt a négyszöget, amely a kontúrt határolja. Erre egy olyan algoritmust készítettem, amely megkeresi a kontúr koordináták segítségével a négy leghosszabb oldalt, majd kiszámolja ezek metszéspontját. A négy leghosszabb oldal használata feltételezi, hogy a kép közel felső nézetből készült az asztalró, továbbá, hogy a sarkoknál jelenik meg több pont a kontúr keresés után.
+\par Az oldalhosszok számolása a \ref{for:vector_distance} képlet alapján megy végbe,
+
+\begin{equation}
+    D = \sqrt{(x_a-x_b)^2 + (y_a-y_b)^2}
+    \label{for:vector_distance}
+\end{equation}
+
+\par ahol $D$ a kiszámolt pontok közti távolság, $(x_a,y_a)$ és $(x_b,y_b)$ pedig a két koordináta, ameyek közt a távot számoljuk. Miután megkaptuk az oldalak hosszait, kiválasszuk a négy legnagyobbat, majd az ezekhez tartozó koordinátákat tároljuk. A kiválasztott pontokat fontos, hogy óramutató járásával ellentétes sorrendben rendezzük, amennyiben nem a négyszög kontúrunk később hibás lehet.
+\par A metszéspontok kiszámolásához a következő képleteket \cite{line_line} használtam,
+
+\begin{equation}
+    D = (x_1 - x_2)(y_3 - y_4) - (y_1 - y_2)(x_3 - x_4)
+    \label{for:vector_intersection_denominator}
+\end{equation}
+\begin{equation}
+    P_x = \frac{(x_1y_2 - y_1x_2)(x_3 - x_4) - (x_3y_4 - y_3x_4)(x_1 - x_2)}{D}
+    \label{for:vector_intersection_point_x}
+\end{equation}
+\begin{equation}
+    P_y = \frac{(x_1y_2 - y_1x_2)(y_3 - y_4) - (x_3y_4 - y_3x_4)(y_1 - y_2)}{D}
+    \label{for:vector_intersection_point_y}
+\end{equation}
+
+\par ahol a \ref{for:vector_intersection_denominator} képletben a $D$ a \ref{for:vector_intersection_point_x} és \ref{for:vector_intersection_point_y} képletekben a nevező kiszámolásához biztosít könnyebb átláthatóságot, $(P_x, P_y)$ a kiszámolt metszéspont, $(x_1, y_1)$, $(x_2, y_2)$, $(x_3, y_3)$ és $(x_4, y_4)$ pedig a négy pont, amelyek a két egyenest határozzák meg, itt ezek közül az eső kettő az egyik, a második kettő a másik egyeneshez tartozik.
+\par A fenti egyenletek kódban a következőképp reprezentálhatóak,
+
+\vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
+def intersection(p1, p2, p3, p4):
+d = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0])
+if (abs(d) < 1e-8):
+    return False
+
+t1 = (p1[0]*p2[1] - p1[1]*p2[0]) * (p3[0] - p4[0]) - (p3[0]*p4[1] - p3[1]*p4[0]) * (p1[0] - p2[0])
+t2 = (p1[0]*p2[1] - p1[1]*p2[0]) * (p3[1] - p4[1]) - (p3[0]*p4[1] - p3[1]*p4[0]) * (p1[1] - p2[1])
+return [t1 / d, t2 / d]
+\end{lstlisting}
+
+\par ahol \lstinline{p1}, \lstinline{p2}, \lstinline{p3}, \lstinline{p4} a fent megismert négy koordináta, \lstinline{d} a kiszámolt nevező, \lstinline{t1} és \lstinline{t2} pedig segédváltozók a számlálók tárolásához. A kódrészlet 3. és 4. sorában látható, hogy abban az esetben ha \lstinline{d} nagyon kicsi, a függvény \lstinline{False} értéket ad vissza. Ez azért van, mert a \ref{for:vector_intersection_denominator} függvényben kiszámolt nevező, $D = 0$ esetén a két egyenes párhuzamos.
+\par A folyamat végeredményeképp kapott kép a \ref{fig:bemeneti_kep_quad} ábrán látható.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_quad.png}
+    \caption{A felismert asztal négy pontból álló körvonala a bináris képen, piros körvonallal keretezve.}
+    \label{fig:bemeneti_kep_quad}
+\end{figure}
+
+\subsection{Az asztal kivágása és torzítása}

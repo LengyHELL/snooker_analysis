@@ -14,18 +14,14 @@ def load_image(location):
         sys.exit(2)
     return image
 
-def intersection(o1, p1, o2, p2):
-    x = [o2[0] - o1[0], o2[1] - o1[1]]
-    d1 = [p1[0] - o1[0], p1[1] - o1[1]]
-    d2 = [p2[0] - o2[0], p2[1] - o2[1]]
-
-    cross = d1[0] * d2[1] - d1[1] * d2[0]
-    if (abs(cross) < 1e-8):
+def intersection(p1, p2, p3, p4):
+    d = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0])
+    if (abs(d) < 1e-8):
         return False
-
-    t1 = (x[0] * d2[1] - x[1] * d2[0]) / cross
-    r = [o1[0] + d1[0] * t1, o1[1] + d1[1] * t1]
-    return r
+    
+    t1 = (p1[0] * p2[1] - p1[1] * p2[0]) * (p3[0] - p4[0]) - (p3[0] * p4[1] - p3[1] * p4[0]) * (p1[0] - p2[0])
+    t2 = (p1[0] * p2[1] - p1[1] * p2[0]) * (p3[1] - p4[1]) - (p3[0] * p4[1] - p3[1] * p4[0]) * (p1[1] - p2[1])
+    return [t1 / d, t2 / d]
 
 def get_length(coord1, coord2):
     return math.sqrt((coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2)
@@ -87,7 +83,6 @@ def find_table(image):
 
     contours = [cv2.convexHull(c) for c in contours]
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
-    cv2.imwrite("output.png", cv2.drawContours(cv2.cvtColor(result, cv2.COLOR_GRAY2BGR), contours, 0, (0, 0, 255), 2))
 
     if len(contours) <= 0:
         return None
@@ -96,6 +91,7 @@ def find_table(image):
     cnt = contours[0]
 
     quad = contour_to_quad(cnt)
+    #cv2.imwrite("output.png", cv2.drawContours(cv2.cvtColor(result, cv2.COLOR_GRAY2BGR), [quad], 0, (0, 0, 255), 2))
     if quad is None:
         return None
     else:
