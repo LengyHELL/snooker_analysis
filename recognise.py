@@ -16,6 +16,7 @@ from analyze import load_image, find_table, cut_and_warp
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 model = keras.models.load_model("classifier.h5")
 
+#img = load_image("misc/images/00000001.jpg")
 img = load_image("misc/input_screen.png")
 img_orig = cv2.resize(img, (800, 450))
 
@@ -57,8 +58,10 @@ if cnt is not None:
             pred = np.array([])
         cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
     else:
+        print("No circles found!")
         cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
 else:
+    print("No table found!")
     cv2.imwrite("./misc/output.png", img_orig)
 
 print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))

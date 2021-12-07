@@ -8,7 +8,7 @@ import cv2
 
 def load_image(location):
 
-    image = cv2.imread(location)
+    image = cv2.imread(location, cv2.IMREAD_COLOR)
     if image is None:
         print("Image cannot be read:", "\'" + location + "\'")
         sys.exit(2)
@@ -65,19 +65,19 @@ def find_table(image):
     threshold = cv2.threshold(image_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0]
     result = cv2.Canny(image_gray, 1.0 * threshold, 0.5 * threshold)
 
-    #kernel = np.array([ [0, 0, 1, 0, 0],
-    #                    [0, 0, 1, 0, 0],
-    #                    [0, 0, 1, 0, 0],
-    #                    [0, 0, 1, 0, 0],
-    #                    [0, 0, 1, 0, 0]], dtype=np.uint8)
-    #
-    #result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
-    #kernel = np.array([ [0, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0],
-    #                    [1, 1, 1, 1, 1],
-    #                    [0, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0]], dtype=np.uint8)
-    #result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
+    kernel = np.array([ [0, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 0]], dtype=np.uint8)
+    
+    result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
+    kernel = np.array([ [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0]], dtype=np.uint8)
+    result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel, iterations = 1)
 
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -99,34 +99,29 @@ def find_table(image):
 
 def cut_and_warp(image, contour, size):
     pts = contour.reshape(4, 2)
-    rect = np.zeros((4, 2), dtype="float32")
+    src = np.zeros((4, 2), "float32")
 
-    s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]
-    rect[2] = pts[np.argmax(s)]
+    sums = pts.sum(axis=1)
+    diffs = np.diff(pts, axis=1).flatten()
 
-    diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)]
-    rect[3] = pts[np.argmax(diff)]
+    #arranging coords to: tl tr br bl
+    src[0] = pts[np.argmin(sums)]
+    src[1] = pts[np.argmin(diffs)]
+    src[2] = pts[np.argmax(sums)]
+    src[3] = pts[np.argmax(diffs)]
 
-    (tl, tr, br, bl) = rect
-    widthA = np.sqrt(((br[0] - bl[0])**2) + ((br[1] - bl[1]) **2))
-    widthB = np.sqrt(((tr[0] - tl[0])**2) + ((tr[1] - tl[1]) **2))
-    heightA = np.sqrt(((tr[0] - br[0])**2) + ((tr[1] - br[1]) **2))
-    heightB = np.sqrt(((tl[0] - bl[0])**2) + ((tl[1] - bl[1]) **2))
-
-    maxWidth = max(int(widthA), int(widthB))
-    maxHeight = max(int(heightA), int(heightB))
+    width, height = (size[0] - 1, size[1] - 1)
 
     dst = np.array([
-        [0, 0],
-        [maxWidth - 1, 0],
-        [maxWidth - 1, maxHeight - 1],
-        [0, maxHeight - 1]],
+        [0,     0       ],
+        [width, 0       ],
+        [width, height  ],
+        [0,     height  ]],
         dtype="float32")
-    M = cv2.getPerspectiveTransform(rect, dst)
-    warp = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
-    return cv2.resize(warp, size)
+    
+    M = cv2.getPerspectiveTransform(src, dst)
+    warp = cv2.warpPerspective(image, M, size)
+    return warp
 
 def calculate_diff(p1, p2):
     return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
