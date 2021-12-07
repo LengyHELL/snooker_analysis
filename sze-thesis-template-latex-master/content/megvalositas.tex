@@ -163,3 +163,46 @@ def intersection(p1, p2, p3, p4):
 \end{figure}
 
 \subsection{Az asztal kivágása és torzítása}
+Ahhoz, hogy az asztalt a kontúr segítségével kivágjuk a képből, szükségünk lesz egy téglalapra, amely alapján a kivágást elvégezzük. Ebben a részben ennek a folyamatnak a működéséről fogok beszélni.
+\par A folyamat első része abból áll, hogy a kapott négy koordinátából álló kontúr pontjait rendezzük. A pontokat bal felső, jobb felső, jobb alsó és bal alsó sorrendben kell átrendeznünk.
+\newline Az átrendezéshez a következő kódrészletet használom,
+
+\vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
+pts = contour.reshape(4, 2)
+src = np.zeros((4, 2), "float32")
+
+sums = pts.sum(axis=1)
+diffs = np.diff(pts, axis=1).flatten()
+
+src[0] = pts[np.argmin(sums)]
+src[1] = pts[np.argmin(diffs)]
+src[2] = pts[np.argmax(sums)]
+src[3] = pts[np.argmax(diffs)]
+\end{lstlisting}
+
+\par ahol először az első két sorban rendezem a koordináta pontokat a \lstinline{pts} változóba és készítek egy \lstinline{src} tömböt a rendezett adatok tárolásához. A következő lépésben, ahhoz, hogy meg tudjam állapítani a pontok relatív helyzetét, készítek az egyes pontokból összegeket (\lstinline{sums}) és különbségeket (\lstinline{diffs}), amelyek az egyes koordináták $x$ és $y$ összetevőinek összegeiből vagy különbségeiből állnak. Ezekből az összegek és különbségekből megállapítható a pontok helyzete, tehát például a bal felső koordinátát az összegek közül a legkisebb érték, a bal alsót a különbségek közül a legnagyobb érték határozza meg, és így a többi koordinátát is. A fent említett műveletek a kódrészlet 7 - 10 soraiban láthatóak.
+\par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükségünk van még a célértékekre is.
+\newline A célértékek a következő sorokkal adhatóak meg,
+
+\vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
+width, height = (size[0] - 1, size[1] - 1)
+
+dst = np.array([
+    [0,     0       ],
+    [width, 0       ],
+    [width, height  ],
+    [0,     height  ]],
+    dtype="float32")
+\end{lstlisting}
+
+\par itt a cél képünk méretei egy érték páros formájában szerepelnek a \lstinline{size} változóban, ezt szélesség és magasság elemekre bontjuk a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg tudjuk adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
+\par A transzformáció végrehajtásához mindezek után már csak a transzformációs mátrix elkészítésére van szükség, majd a transzformáció végrehajtására.
+\newline Ezeket a következő kódrészlettel hajthatjuk végre,
+
+\vspace{2mm}\begin{lstlisting}[language=Python, numbers=left]
+M = cv2.getPerspectiveTransform(src, dst)
+warp = cv2.warpPerspective(image, M, size)
+\end{lstlisting}
+
+\par itt \lstinline{M} a transzformációs mátrixunk, amelyet a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{cv2_get_perspective_transform} kapunk meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{cv2_warp_perspective} alkalmazunk az \lstinline{image} változóban tárolt képünkre a \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
+\par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
