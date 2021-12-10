@@ -206,3 +206,5 @@ warp = cv2.warpPerspective(image, M, size)
 
 \par itt \lstinline{M} a transzformációs mátrixunk, amelyet a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{cv2_get_perspective_transform} kapunk meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{cv2_warp_perspective} alkalmazunk az \lstinline{image} változóban tárolt képünkre a \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
+
+\subsection{Körkeresés és azonosítás}
