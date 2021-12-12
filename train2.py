@@ -10,7 +10,7 @@ from tensorflow import keras
 
 import cv2
 
-directory = "./misc/dataset3"
+directory = "./misc/dataset4"
 classes = np.array(["black", "blue", "brown", "green", "pink", "red", "white", "yellow"])
 
 lengths = []
@@ -61,7 +61,8 @@ print(f"Test images:", labels.shape[0] - border)
 
 
 model = keras.models.Sequential([
-    keras.layers.Conv2D(8, (3, 3), strides=(1, 1), activation="relu", input_shape=(18, 18, 6)),
+    keras.layers.Conv2D(8, (5, 5), strides=(1, 1), activation="relu", input_shape=(18, 18, 6)),
+    keras.layers.MaxPool2D((2, 2)),
     keras.layers.Flatten(),
     keras.layers.Dense(16, activation="relu"),
     keras.layers.Dense(8, activation="relu"),
@@ -71,12 +72,12 @@ model = keras.models.Sequential([
 print(model.summary())
 
 loss = keras.losses.CategoricalCrossentropy(from_logits=True)
-optimizer = keras.optimizers.Adam(learning_rate=0.0001)
+optimizer = keras.optimizers.Adam(learning_rate=0.001)
 metrics = ["accuracy"]
 
 model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-history = model.fit(train_images, train_labels, epochs=20, batch_size=5, verbose=1)
+history = model.fit(train_images, train_labels, epochs=10, batch_size=5, verbose=1)
 
 model.evaluate(test_images, test_labels, batch_size=5, verbose=2)
 
@@ -90,4 +91,4 @@ plt.show()
 
 model.add(keras.layers.Softmax())
 
-model.save("classifier_combined.h5")
+model.save("classifier_combined3.h5")

@@ -8,7 +8,7 @@ from analyze import find_table, cut_and_warp, find_circles, load_model, cut_circ
 
 circle_radius = 9
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
-model = load_model("classifier_combined.h5")
+model = load_model("classifier_combined3.h5")
 
 bounding_box = {'top': 100, 'left': 100, 'width': 900, 'height': 450}
 sct = mss()

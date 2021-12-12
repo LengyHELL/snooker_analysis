@@ -6,7 +6,7 @@ from analyze import find_circles, find_table, cut_and_warp, label_cuts_nn, load_
 
 circle_radius = 9
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
-model = load_model("classifier_combined.h5")
+model = load_model("classifier_combined3.h5")
 
 #video_capture = cv2.VideoCapture("./misc/game2.mkv")
 video_capture = cv2.VideoCapture("./misc/game_full.mkv")
