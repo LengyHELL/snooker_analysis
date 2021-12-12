@@ -10,7 +10,7 @@ from tensorflow import keras
 
 import cv2
 
-directory = "./misc/dataset2"
+directory = "./misc/dataset3"
 classes = np.array(["black", "blue", "brown", "green", "pink", "red", "white", "yellow"])
 
 lengths = []
@@ -31,7 +31,12 @@ for c in classes:
     files = files[:size]
 
     for f in files:
-        images.append(cv2.imread(class_dir + "/" + f))
+        #images.append(cv2.imread(class_dir + "/" + f, cv2.IMREAD_COLOR))
+        #images.append(cv2.cvtColor(cv2.imread(class_dir + "/" + f, cv2.IMREAD_COLOR), cv2.COLOR_BGR2HSV))
+        bgr = cv2.imread(class_dir + "/" + f, cv2.IMREAD_COLOR)
+        hsv = cv2.cvtColor(cv2.imread(class_dir + "/" + f, cv2.IMREAD_COLOR), cv2.COLOR_BGR2HSV)
+        combined = np.append(bgr, hsv, axis=2)
+        images.append(combined)
         labels.append(np.where(classes == c))
 
 images = np.array(images)
@@ -56,7 +61,7 @@ print(f"Test images:", labels.shape[0] - border)
 
 
 model = keras.models.Sequential([
-    keras.layers.Conv2D(3, (3, 3), strides=(1, 1), activation="relu", input_shape=(18, 18, 3)),
+    keras.layers.Conv2D(8, (3, 3), strides=(1, 1), activation="relu", input_shape=(18, 18, 6)),
     keras.layers.Flatten(),
     keras.layers.Dense(16, activation="relu"),
     keras.layers.Dense(8, activation="relu"),
@@ -66,12 +71,12 @@ model = keras.models.Sequential([
 print(model.summary())
 
 loss = keras.losses.CategoricalCrossentropy(from_logits=True)
-optimizer = keras.optimizers.Adam(learning_rate=0.001)
+optimizer = keras.optimizers.Adam(learning_rate=0.0001)
 metrics = ["accuracy"]
 
 model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-history = model.fit(train_images, train_labels, epochs=10, batch_size=5, verbose=1)
+history = model.fit(train_images, train_labels, epochs=20, batch_size=5, verbose=1)
 
 model.evaluate(test_images, test_labels, batch_size=5, verbose=2)
 
@@ -85,4 +90,4 @@ plt.show()
 
 model.add(keras.layers.Softmax())
 
-model.save("classifier.h5")
+model.save("classifier_combined.h5")
