@@ -11,8 +11,6 @@ from tensorflow import keras
 import cv2
 from analyze import load_image, find_table, cut_and_warp
 
-# http://www.flyordie.hu/snooker/
-
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 model = keras.models.load_model("classifier.h5")
 

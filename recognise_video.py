@@ -1,22 +1,25 @@
 import time
 import numpy as np
 
-from mss import mss
-
 import cv2
-from analyze import find_table, cut_and_warp, find_circles, load_model, cut_circles, label_cuts_nn
+from analyze import find_circles, find_table, cut_and_warp, label_cuts_nn, load_model, cut_circles
 
 circle_radius = 9
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 model = load_model("classifier_combined.h5")
 
-bounding_box = {'top': 100, 'left': 100, 'width': 900, 'height': 450}
-sct = mss()
+#video_capture = cv2.VideoCapture("./misc/game2.mkv")
+video_capture = cv2.VideoCapture("./misc/game_full.mkv")
+success, vid_img = video_capture.read()
 
-while True:
-    sct_img = sct.grab(bounding_box)
-    img = cv2.cvtColor(np.array(sct_img), cv2.COLOR_BGRA2BGR)
+while success:
     try:
+        success, vid_img = video_capture.read()
+        if not success:
+            raise Exception("Failed to get frame!")
+        
+        img = vid_img
+
         cnt = find_table(img)
         if cnt is None:
             raise Exception("Table not found!")
@@ -40,7 +43,7 @@ while True:
             #cv2.circle(out, (x + 9, y + 9), 10, (0, 0, 255), 2)
 
     except Exception as e:
-        cv2.imshow("screen", cv2.resize(img, (900, 450)))
+        cv2.imshow("screen", cv2.resize(vid_img, (900, 450)))
     else:
         cv2.imshow("screen", cv2.resize(out, (900, 450)))
 

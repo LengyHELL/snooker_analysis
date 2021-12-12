@@ -3,23 +3,14 @@ import sys
 
 import time
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle
 
 import cv2
-from analyze import load_image, find_table, cut_and_warp, search_template, calculate_diff
-
-# http://www.flyordie.hu/snooker/
-
-#img = load_image("./misc/images/00000002.jpg")
-#cnt = find_table(img)
-#img = cut_and_warp(img, cnt, (1024, 512))
-#cv2.imwrite("new.png", img)
+from analyze import label_cuts_tm, load_image, find_table, cut_and_warp, find_circles, cut_circles
 
 dir = "./misc/images"
 files = os.listdir(dir)
-index = 1
-index2 = 0
+index = 0
+circle_radius = 9
 
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
 templates = []
@@ -33,44 +24,35 @@ templates.append(load_image("misc/templates/white_ball_hd.png"))
 templates.append(load_image("misc/templates/yellow_ball_hd.png"))
 
 for f in files:
+    if f.split(".")[1] != "png":
+        continue
     start_time = time.time()
     img = load_image(dir + "/" + f)
-    cnt = find_table(img)
-    img = cut_and_warp(img, cnt, (1024, 512))
 
-    out = img.copy()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    try:
+        cnt = find_table(img)
+        if cnt is None:
+            raise Exception("Table not found!")
 
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param2=15, minRadius=5, maxRadius=11)
+        img = cut_and_warp(img, cnt, (1024, 512))
+        out = img.copy()
+        circles = find_circles(img, circle_radius)
+        if circles is None:
+            raise Exception("Failed to find circles!")
 
-    cut = img.copy()
-    if circles is not None:
-        circles = np.round(circles[0,:]).astype("int")
+        cuts, rects = cut_circles(img, circles, circle_radius, mode="bgr")
 
-        for (x, y, r) in circles:
-            cv2.circle(out, (x, y), r, (255, 0, 0), 1)
-            x = x - 9
-            y = y - 9
-            w = 18
-            h = 18
-            cut = img[y:y+h, x:x+w]
-            res = []
-            for t in templates:
-                res.append(cv2.matchTemplate(cut, t, cv2.TM_CCORR_NORMED))
-            res = np.array(res).reshape(-1)
-            res = np.where(res >= 0.75, res, 0)
-            if res.any() > 0:
-                color = labels[np.argmax(res)]
-                cv2.imwrite("./misc/dataset2/" + color + "/" + str(index2) + ".png", cut)
-                index2 += 1
+        ids, _ = label_cuts_tm(cuts, templates)
+        if ids is None:
+            raise Exception("Failed to label candidates!")
+
+        for i, id in enumerate(ids):
+            color = labels[id]
+            cv2.imwrite("./misc/dataset4/" + color + "/" + str(index) + ".png", cuts[i])
+            index += 1
+
+    except Exception as e:
+        print(e.args[0])
     else:
-        print("No circles found")
-
-    #print(f, len(circles))
-    print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
-    #plt.figure(figsize=(10, 5))
-    #plt.imshow(cv2.cvtColor(out, cv2.COLOR_BGR2RGB))
-    #plt.xticks([])
-    #plt.yticks([])
-    #plt.show()
-print(index2)
+        print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
+print("Created:", index)
