@@ -10,6 +10,8 @@ Ebben a fejezetben a címből is láthatóan az asztal és azon elhelyezkedő \t
 \end{figure}
 
 \begin{table}[!ht]
+    \caption{A golyó felismerés kimeneti adatai a \ref{fig:bemeneti_asztal} kép alapján.}
+    \label{tab:felismert_koordinatak}
 	\footnotesize
 	\centering
 	\begin{tabular}{ l l l }
@@ -29,8 +31,6 @@ Ebben a fejezetben a címből is láthatóan az asztal és azon elhelyezkedő \t
         black  & 918 & 256\\
 		\bottomrule
 	\end{tabular}
-	\caption{A golyó felismerés kimeneti adatai a \ref{fig:bemeneti_asztal} kép alapján.}
-	\label{tab:felismert_koordinatak}
 \end{table}
 
 \par A \ref{fig:bemeneti_asztal} képen már az asztal felismerés után való képet mutatom, a láthatóság megkönnyítése érdekében. A fejezet következő részeiben a bemeneti nyers képről koordinátákra való átalakítás lehetséges módszereit ismertetem lépésekre bontva.
@@ -161,6 +161,8 @@ Az előző módszerhez hasonlóan a golyó színek szerinti osztályozása itt i
 Ahhoz, hogy kiküszöböljük a mintaillesztés hibáit, az osztályozást elvégezhetjük neurális hálózat segítségével. Ezt megtehetjük ugyancsak, ha egy kerettel végigpásztázunk a játékterület képén, de a körkereséses módszernél megismert Hough transzformációval jobb eredményt is elérhetünk. A következőkben a körkeresés eredményeképp kapott, a bemeneti játékterület képéből kivágott golyók osztályozásáról lesz szó neurális hálózat segítségével. A kivágott képek fogják a bemenetet képezni, majd a neurális hálózat azt osztályozza egy 0 tól 7 ig terjedő egész számként. Ezek a számok a golyók színeit reprezentálják, lásd \ref{tab:golyo_azonositok} táblázat.
 
 \begin{table}[!ht]
+    \caption{A golyók szín szerint, és azok azonosítói.}
+    \label{tab:golyo_azonositok}
 	\footnotesize
 	\centering
 	\begin{tabular}{ l c }
@@ -177,8 +179,6 @@ Ahhoz, hogy kiküszöböljük a mintaillesztés hibáit, az osztályozást elvé
         sárga       & 7\\
 		\bottomrule
 	\end{tabular}
-	\caption{A golyók szín szerint, és azok azonosítói.}
-	\label{tab:golyo_azonositok}
 \end{table}
 
 \par A neurális hálózat betanításához szükség van betanítási adatkészletre, viszont az előzőekben megsimert módszereknél szóba került, hogy viszonylag kevés kézi szortírozással könnyedén lehet velül előállítani adatkészletet, amely tökéletes a neurális hálózat betanításához és teszteléséhez. Az adatkészlet néhány eleme látható a \ref{fig:adatkeszlet} ábrán.

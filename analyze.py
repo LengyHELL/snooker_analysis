@@ -1,10 +1,14 @@
 import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import sys
 
 import math
 import numpy as np
 
 import cv2
+import tensorflow as tf
+from tensorflow import keras
+
 
 def load_image(location):
 
@@ -58,6 +62,8 @@ def find_table(image):
 
     lower_green = np.array([40, 190, 50])
     upper_green = np.array([65, 255, 225])
+    #lower_green = np.array([30, 180, 40])
+    #upper_green = np.array([75, 255, 235])
     mask = cv2.inRange(hsv, lower_green, upper_green)
     result = cv2.bitwise_and(image, image, mask = mask)
 
@@ -82,16 +88,18 @@ def find_table(image):
     contours, hierarchy = cv2.findContours(result, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     contours = [cv2.convexHull(c) for c in contours]
+    #for i, c in enumerate(contours):
+    #    hull = cv2.convexHull(c)
+    #    epsilon = 0.005 * cv2.arcLength(hull, True)
+    #    contours[i] = cv2.approxPolyDP(hull, epsilon, True)
     contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 
     if len(contours) <= 0:
         return None
 
-    #cnt = cv2.convexHull(contours[0])
     cnt = contours[0]
 
     quad = contour_to_quad(cnt)
-    #cv2.imwrite("output.png", cv2.drawContours(cv2.cvtColor(result, cv2.COLOR_GRAY2BGR), [quad], 0, (0, 0, 255), 2))
     if quad is None:
         return None
     else:
@@ -144,3 +152,64 @@ def search_template(image, template, threshold=0.9, min_diff=15):
         if add:
             points.append(pt)
     return np.array(points)
+
+def load_model(path):
+    return keras.models.load_model(path)
+
+def find_circles(image, circle_radius):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[0] * 0.8
+    if threshold <= 0:
+        return None
+
+    minRadius = int(circle_radius * 0.6)
+    maxRadius = int(circle_radius * 1.2)
+    minDistance = int(circle_radius * 1.6)
+
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, minDistance, param1=threshold, param2=15, minRadius=minRadius, maxRadius=maxRadius)
+    if circles is None:
+        return None
+    
+    return np.round(circles[0,:]).astype("int")
+
+def cut_circles(img, circles, circle_radius, mode="bgr"):
+    cuts = []
+    rects = []
+    hsv = None
+    if mode != "bgr":
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    for (x, y, r) in circles:
+        x, y, w, h = (x-circle_radius, y-circle_radius, circle_radius * 2, circle_radius * 2)
+        if (x >= 0) and (y >= 0) and ((x + w) < img.shape[1]) and ((y + h) < img.shape[0]):
+            if mode == "bgr":
+                cuts.append(img[y:y+h, x:x+w])
+            elif mode == "hsv":
+                cuts.append(hsv[y:y+h, x:x+w])
+            elif mode == "combined":
+                cuts.append(np.append(img[y:y+h, x:x+w], hsv[y:y+h, x:x+w], axis=2))
+            else:
+                return None, None
+            rects.append(((x, y), (x+w, y+h)))
+    return np.array(cuts), rects
+
+def label_cuts_tm(cuts, templates):
+    labels = []
+    preds = []
+    for c in cuts:
+        res = []
+        for t in templates:
+            res.append(cv2.matchTemplate(c, t, cv2.TM_CCORR_NORMED))
+        res = np.array(res).reshape(-1)
+        preds.append(res)
+        labels.append(np.argmax(res))
+    return np.array(labels), np.array(preds)
+            
+def label_cuts_nn(cuts, model):
+    norms = np.array(cuts / 255)
+    if len(norms) > 0:
+        preds = model.predict(norms)
+        labels = np.argmax(preds, axis=1)
+    else:
+        return None, None
+    return labels, preds
