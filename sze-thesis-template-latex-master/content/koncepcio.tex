@@ -97,7 +97,7 @@ Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaille
 \end{figure}
 
 \par A \ref{fig:minta_kep} minta felbontása láthatóan alacsony, azonban túl nagy felbontás esetén a folyamat meglehetősen lassabban megy végbe, továbbá a minta méretét még a felismert játékterület mérete is meghatározza.
-\par A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ezt a \ref{for:cross_correlation} képletben láthatjuk\cite{template_match}.
+\par A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ezt a \ref{for:cross_correlation} képletben láthatjuk\cite{kaehler2016learning, opencv_docs}.
 
 \begin{equation}
     R(x, y) = \frac{\sum_{x',y'}(T(x',y') \cdot I(x + x', y + y'))}{\sqrt{\sum_{x',y'}T(x',y')^2 \cdot \sum_{x',y'}I(x + x',y + y')^2}}

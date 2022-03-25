@@ -47,7 +47,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti képünk, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{cv2_cvt_color} konvertálunk át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti képünk, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV. A \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{cv2_in_range} végezhetjük el itt a paraméterek sorban a HSV re konvertált képünk, valamint az alsó és felső intenzitás értékek.
+\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti képünk, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálunk át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti képünk, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV. A \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végezhetjük el itt a paraméterek sorban a HSV re konvertált képünk, valamint az alsó és felső intenzitás értékek.
 \newline A függvény a következők alapján dönti el, a maszk intenzitását,
 
 \begin{equation}
@@ -55,7 +55,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
     \label{for:maszkolas}
 \end{equation}
 
-\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után azt alkalmazzuk az eredeti bemenő képre a \lstinline{cv2.bitwise_and} függvény \cite{cv2_bitwise_and} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer és a maszk \lstinline{mask}.
+\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után azt alkalmazzuk az eredeti bemenő képre a \lstinline{cv2.bitwise_and} függvény \cite{opencv_docs} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer és a maszk \lstinline{mask}.
 \newline A folyamat során a metódus a következőképp jár el,
 
 \begin{equation}
@@ -76,7 +76,7 @@ edges = cv2.Canny(image_gray, 100, 200)
 \end{lstlisting}
 \end{minipage}
 
-\par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{cv2_cvt_color} végezzük el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressük az éleket a képen Canny éldetektálás \cite{cv2_canny,canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
+\par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} végezzük el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressük az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
 \newline A Canny éldetektálás általában több lépésre bontható szét, ezek lehetnek:
 
 \begin{itemize}
@@ -109,9 +109,9 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:contours} kódrészletben található \lstinline{cv2.findContours} függvény \cite{cv2_find_contours, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonalát a \lstinline{cv2.convexHull} függvény \cite{cv2_convex_hull,SKLANSKY198279} segítségével kapjuk meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
+\par A \ref{cod:contours} kódrészletben található \lstinline{cv2.findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonalát a \lstinline{cv2.convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapjuk meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
 \par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthetjük az alakzatunkat (pl.: kotúr koordináta láncolat pontjainak csökkentése), ezzel a következő műveleteket felgyorsítva.
-\par A legnagyobb kontúr kiválasztásához tudnunk kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{cv2_contour_area} számolhatjuk ki. Ezt megtesszük minden eddigi kontúrral úgy, hogy szimplán paraméterként adjuk a függvénynek. A kiszámolt területek közül kiválasszuk a legnagyobbat, majd annak kontúr koordináta láncolatát eltároljuk. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
+\par A legnagyobb kontúr kiválasztásához tudnunk kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{opencv_docs} számolhatjuk ki. Ezt megtesszük minden eddigi kontúrral úgy, hogy szimplán paraméterként adjuk a függvénynek. A kiszámolt területek közül kiválasszuk a legnagyobbat, majd annak kontúr koordináta láncolatát eltároljuk. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -236,7 +236,7 @@ warp = cv2.warpPerspective(image, M, size)
 \end{lstlisting}
 \end{minipage}
 
-\par itt \lstinline{M} a transzformációs mátrixunk, amelyet a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{cv2_get_perspective_transform} kapunk meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{cv2_warp_perspective} alkalmazunk az \lstinline{image} változóban tárolt képünkre a \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
+\par itt \lstinline{M} a transzformációs mátrixunk, amelyet a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapunk meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{opencv_docs} alkalmazunk az \lstinline{image} változóban tárolt képünkre a \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
 \subsection{Körkeresés és azonosítás}
