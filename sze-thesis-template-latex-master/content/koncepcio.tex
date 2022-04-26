@@ -67,7 +67,43 @@ Ez a lépés kicsit elkülönül a többi lépéstől, hiszen a további lépés
     \item telítettség (Saturation),
     \item érték (Value).
 \end{itemize}
-\par Az adott specifikus intervallumon kívül helyezkedő értékek maszkolásra kerülnek, hátrahagyva a kívánt játékterület képpontjait. A kép a maszkolás után visszaalakításra kerül az eredeti RGB formátumára. A folyamat után kapott kép a \ref{fig:bemeneti_kep_mask} képen látható.
+\par Az RGB értékekből a HSV értékek kiszámolásához először az értéket (Value) kell kiszámolni, ez a \ref{for:HSV_V} egyenlet szerint lehetséges,
+
+\begin{equation}
+    V \leftarrow max(R,G,B)
+    \label{for:HSV_V}
+\end{equation}
+
+\par ahol $V$ az értéket (Value) jelöli, $R$, $G$ és $B$ pedig az adott képpont három színkomponensét (Piros, Zöld, Kék). Az egyenlet alapján az érték a három színkomponens közül a legnagyobbnak az értékét fogja felvenni. Az érték kiszámolásával megadható a telítettség (Saturation).
+\par Ezt a \ref{for:HSV_S} egyenlet alapján lehet kiszámolni,
+
+\begin{equation}
+    S \leftarrow
+    \begin{cases}
+        \frac{V-min(R,G,B)}{V} & ,\text{ha}\ V\neq0 \\
+        0 & ,\text{különben}
+    \end{cases}
+    \label{for:HSV_S}
+\end{equation}
+
+\par itt $S$ a telítettséget (Saturation) jelöli, és az előzőekhez hasonlóan $V$ az értéket (Value), $R$, $G$ és $B$ pedig a színkomponenseket, továbbá $min(R,G,B)$ a három színkomponens közül a legkisebbet adja meg.
+\par Az árnyalatot (Hue) szintén az érték (Value) segítségével lehet kiszámolni, ezt a \ref{for:HSV_H} egyenlet adja meg,
+
+\begin{equation}
+    H \leftarrow
+    \begin{cases}
+        \frac{60(G-B)}{V-min(R,G,B)} & ,\text{ha}\ V=R \\[5pt]
+        \frac{120+60(B-R)}{V-min(R,G,B)} & ,\text{ha}\ V=G \\[5pt]
+        \frac{240+60(R-G)}{V-min(R,G,B)} & ,\text{ha}\ V=B \\[5pt]
+        0 & ,\text{ha}\ R=G=B
+    \end{cases}
+    \label{for:HSV_H}
+\end{equation}
+
+\par ahol $H$ az árnyalatot (Hue), $V$ az értéket (Value), $R$, $G$ és $B$ a három színkomponenst, $min(R,G,B)$ pedig a színkomponensek közül a minimálisat jelöli.
+\par Amennyiben $H$ értéke kisebb, mint $0$, annak értéke $H \leftarrow H+360$ szerint alakul. A 8-bites és 16-bites színnel rendelkező képeknél $R$, $G$ és $B$ értéke kezdetben normalizálásra kerül a $[0,1]$ intervallumba, ennek következtében a három értéknél $0 \le V \le 1$, $0 \le S \le 1$, $0 \le H \le 360$ tartományok jelentkeznek. Az értékek visszaállítása tartománynak megfelelően 8-bites képek esetében az értékek megszerzése után $V \leftarrow 255V$, $S \leftarrow 255S$ és $H \leftarrow H/2$ szerint megy végbe, ez hasonló 16-bites szín esetében is. 32-bites színnel rendelkező képeknél nincs kezdeti normalizálás, és ennek következtében visszaalakítás sem szükséges.
+
+\par A HSV konverzió után az adott specifikus intervallumon kívül helyezkedő értékek maszkolásra kerülnek, hátrahagyva a kívánt játékterület képpontjait. A kép a maszkolás után visszaalakításra kerül az eredeti RGB formátumára. A folyamat után kapott kép a \ref{fig:bemeneti_kep_mask} képen látható.
 
 \begin{figure}[!ht]
     \centering
