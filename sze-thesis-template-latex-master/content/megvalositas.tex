@@ -9,8 +9,8 @@ A megvalósítás során az eddig megismert módszereket fogom felhasználni, az
 \section{A golyók pozíciója}
 
 \subsection{A szükséges könyvtárak importálása}
-Ahhoz hogy a függvények megfeleően működjenek, meg kell mondanunk a programnak, hogy használja a külső könyvtárakat.
-\newline Ezt a \ref{cod:import} kódsorok alapján tehetjük meg.
+Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programnak, hogy használja a külső könyvtárakat.
+\newline Ez a \ref{cod:import} kódsorok alapján tehető meg.
 
 \vspace{2mm}
 \hspace{-10mm}
@@ -22,14 +22,14 @@ import cv2
 \end{lstlisting}
 \end{minipage}
 
-\par A \lstinline{math} könyvtár segítségével matematikai műveleteket (gyökvonás, szinusz, koszinusz) tudunk végezni, a \lstinline{numpy} könyvtár a tömbök, mátrixok kezelését, azokkal való műveleteket segíti és gyorsítja, a \lstinline{cv2} pedig az OpenCV eszközeit teszi elérhetővé.
+\par A \lstinline{math} könyvtár segítségével matematikai műveleteket (gyökvonás, szinusz, koszinusz) lehet végezni, a \lstinline{numpy} könyvtár a tömbök, mátrixok kezelését, azokkal való műveleteket segíti és gyorsítja, a \lstinline{cv2} pedig az OpenCV eszközeit teszi elérhetővé.
 
 \subsection{Az asztal kontúrjának megkeresése}
-Annak érdekében, hogy a nyers képből kinyerjük a játékterületet, azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
-\par A betöltött kép tömbjének alakja megegyezik a kép szélességével és magasságával, továbbá az intenzitási értékekkel, tehát ha betöltünk egy 1024 x 512 méretű RGB képet, annak tömbjének az első és második dimenziója 1024 és 512, a harmadik pedig az RGB (Piros, Zöld, Kék) intenzitásoknak megfelelően 3 méretű.
+A nyers képből a játékterület megszerzéséhez azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
+\par A betöltött kép tömbjének alakja megegyezik a kép szélességével és magasságával, továbbá az intenzitási értékekkel, tehát egy 1024 x 512 méretű RGB képet betöltve, annak tömbjének az első és második dimenziója 1024 és 512, a harmadik pedig az RGB (Piros, Zöld, Kék) intenzitásoknak megfelelően 3 méretű.
 \par Fontos megjegyezni, hogy az OpenCV a képeket betöltéskor BGR formátumban tölti be, ez az elnevezésből adódóan annyiban tér el az RGB formátumtól, hogy a piros (R) és kék (B) színcsatornák fel vannak cserélve.
-\par A nyers bemeneti kép megszerzése után készen állunk az asztal kontúrjának megkeresésére. Első lépésként a képet átalakítjuk HSV formátumra, majd megadjuk az alsó és felső intenzitási értékhatárokat, amelyből elkészítjük a maszkot. Ezután maszkoljuk az eredeti képet a maszk segítségével.
-\newline A fentieket a \ref{cod:maszk} kódrészlettel végezhetjük el.
+\par A nyers bemeneti kép megszerzése után következik az asztal kontúrjának megkeresése. Első lépésként a képet HSV formátumra kell alakítani, majd az alsó és felső intenzitási értékhatárok megadásával meghatározható a maszk, amely alkalmazható az eredeti képre.
+\newline A fentieket a \ref{cod:maszk} kódrészlettel végzem el.
 
 
 \vspace{2mm}
@@ -47,24 +47,24 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti képünk, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálunk át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti képünk, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV. A \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végezhetjük el itt a paraméterek sorban a HSV re konvertált képünk, valamint az alsó és felső intenzitás értékek.
-\newline A függvény a következők alapján dönti el, a maszk intenzitását,
+\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV. A \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végzem el itt a paraméterek sorban a HSV re konvertált kép, valamint az alsó és felső intenzitás értékek.
+\newline A függvény a \ref{for:maszkolas} egyenlet alapján dönti el, a maszk intenzitását,
 
 \begin{equation}
     M(I) = L(I) \le S(I) \le U(I)
     \label{for:maszkolas}
 \end{equation}
 
-\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után azt alkalmazzuk az eredeti bemenő képre a \lstinline{cv2.bitwise_and} függvény \cite{opencv_docs} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer és a maszk \lstinline{mask}.
-\newline A folyamat során a metódus a következőképp jár el,
+\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után a maszkolás megtörténik az eredeti bemenő képre a \lstinline{cv2.bitwise_and} függvény \cite{opencv_docs} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer és a maszk \lstinline{mask}.
+\newline A folyamat során a metódus a \ref{for:maszk_alkalmazas} egyenlet szerint jár el,
 
 \begin{equation}
     R(I) = S_1(I)\quad \land\quad S_2(I)\qquad ,ha\quad M(I) \ne 0
     \label{for:maszk_alkalmazas}
 \end{equation}
 
-\par ahol $R$ a kimenő maszkolt kép (\lstinline{result}) $S_1$ és $S_2$ a két bemeneti kép paraméter, és $M$ a maszk. A bemenetben a kép azért szerepel kétszer egymás után, mert a \ref{for:maszk_alkalmazas} függvényben láthatóan a két bemenő paraméter közt egy bit szintű 'és' művelet történik, amennyiben a maszk nem nulla. Ez azt teszi lehetővé, hogy az eredeti képet kapjuk a maszkolt elemek kivételével, ami azért történik, mert bit szinten ha két megegyező elem közt történik 'és' művelet, akkor az eredmény szintén megegyezik a két elemmel. Ennek a folyamatnak a kimenetele látható a már előzőleg tárgyalt \ref{fig:bemeneti_kep_mask} ábrán.
-\par A maszkolt kép megszerzése után elvégezhetjük az éldetektálást, amelyet megelőz egy szürkeárnyalatolás.
+\par ahol $R$ a kimenő maszkolt kép (\lstinline{result}) $S_1$ és $S_2$ a két bemeneti kép paraméter, és $M$ a maszk. A bemenetben a kép azért szerepel kétszer egymás után, mert a \ref{for:maszk_alkalmazas} függvényben láthatóan a két bemenő paraméter közt egy bit szintű 'és' művelet történik, amennyiben a maszk nem nulla. Ennek eredményeképp az eredeti kép adódik vissza amelyen maszkolt képpontok feketével szerepelnek. Ez azért történik, mert bit szinten ha két megegyező elem közt történik 'és' művelet, akkor az eredmény szintén megegyezik a két elemmel. Ennek a folyamatnak a kimenetele látható a már előzőleg tárgyalt \ref{fig:bemeneti_kep_mask} ábrán.
+\par A maszkolt kép megszerzése után elvégezhető az éldetektálás, amelyet megelőz egy szürkeárnyalatolás.
 
 \vspace{2mm}
 \hspace{-10mm}
@@ -76,18 +76,18 @@ edges = cv2.Canny(image_gray, 100, 200)
 \end{lstlisting}
 \end{minipage}
 
-\par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} végezzük el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressük az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
+\par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} végzem el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressem az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
 \newline A Canny éldetektálás általában több lépésre bontható szét, ezek lehetnek:
 
 \begin{itemize}
     \setlength\itemsep{-2pt}
-    \item Homályosítás Gauss szűrővel \cite{shapiro2001} a zajcsökkentés érdekében
-    \item Élek helyének és irányának megállapítása intenzitás-gradiensből
-    \item Nem-Maximum vágás merőleges élek szűréshéhez
-    \item Kettős küszöbölés élek szűréséhez
+    \item homályosítás Gauss szűrővel \cite{shapiro2001} a zajcsökkentés érdekében,
+    \item élek helyének és irányának megállapítása intenzitás-gradiensből,
+    \item nem-maximum vágás merőleges élek szűréshéhez,
+    \item kettős küszöbölés élek szűréséhez.
 \end{itemize}
 
-\par Az éldetektálásnál meg kell adnunk a függvénynek a szürkeárnyalatos képünket (\lstinline{image_gray}), továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, azt felvesszük az élek közé, ha az alsó küszöb alatt van eldobjuk és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján vesszük fel élnek. Az éldetektálással kapott kép (\lstinline{edges}) a \ref{fig:bemeneti_kep_edge} ábrán látható.
+\par Az éldetektálásnál meg kell adni a függvénynek a szürkeárnyalatos képet (\lstinline{image_gray}), továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, az hozzáadódik az élek közé, ha az alsó küszöb alatt van eldobódik és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján kerül az élek közé. Az éldetektálással kapott kép (\lstinline{edges}) a \ref{fig:bemeneti_kep_edge} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -96,7 +96,7 @@ edges = cv2.Canny(image_gray, 100, 200)
     \label{fig:bemeneti_kep_edge}
 \end{figure}
 
-\par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszük a konvex körvonalát, azok egyszerűsítése, esetleges konkáv alakzatok megszüntetése érdekében. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, kiválasszuk a körvonalak közül.
+\par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszem a konvex körvonalát, azok egyszerűsítése, esetleges konkáv alakzatok megszüntetése érdekében. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, az kiválasztható a körvonalak közül.
 
 \vspace{2mm}
 \hspace{-10mm}
@@ -109,9 +109,9 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:contours} kódrészletben található \lstinline{cv2.findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonalát a \lstinline{cv2.convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapjuk meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
-\par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthetjük az alakzatunkat (pl.: kotúr koordináta láncolat pontjainak csökkentése), ezzel a következő műveleteket felgyorsítva.
-\par A legnagyobb kontúr kiválasztásához tudnunk kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{opencv_docs} számolhatjuk ki. Ezt megtesszük minden eddigi kontúrral úgy, hogy szimplán paraméterként adjuk a függvénynek. A kiszámolt területek közül kiválasszuk a legnagyobbat, majd annak kontúr koordináta láncolatát eltároljuk. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
+\par A \ref{cod:contours} kódrészletben található \lstinline{cv2.findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonala a \lstinline{cv2.convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapható meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
+\par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthető az alakzat (kontúr koordináta láncolat pontjainak csökkentése), ezzel a folytatólagos műveleteket felgyorsítva.
+\par A legnagyobb kontúr kiválasztásához tudni kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{opencv_docs} lehet kiszámolni. Ez megtehető minden eddigi kontúr esetében függvénynek való paraméterkénti átadással. A kiszámolt területek közül a legnagyobbat kiválasztva, annak kontúr koordináta láncolata eltárolásra kerül. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -121,16 +121,16 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 \end{figure}
 
 \par A \lstinline{cv2.contourArea} függvény a Surveyor's Area algoritmust \cite{braden1986surveyor} használja az alakzatok területének számolásához. Ez az algoritmus a Green-tétel egy speciális esete, amely alkalmazható egyszerű sokszögekre.
-\newline Az algoritmus függvéyne a következő,
+\newline Az algoritmus a \ref{for:green_formula} egyenletben látható,
 
 \begin{equation}
     A = \sum^n_{k=0}\frac{(x_{k+1} + x_k)(y_{k+1} - y_k)}{2}
     \label{for:green_formula}
 \end{equation}
 
-\par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhetjük, hogy a $k = n+1$ elem megegyezik a $k = 0$ elemmel.
+\par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhető, hogy a $k = n+1$ elem megegyezik a $k = 0$ elemmel.
 
-\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúrunk téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában ki tudjuk vágni a képet, meg kell keresnünk azt a négyszöget, amely a kontúrt határolja. Erre egy olyan algoritmust készítettem, amely megkeresi a kontúr koordináták segítségével a négy leghosszabb oldalt, majd kiszámolja ezek metszéspontját. A négy leghosszabb oldal használata feltételezi, hogy a kép közel felső nézetből készült az asztalró, továbbá, hogy a sarkoknál jelenik meg több pont a kontúr keresés után.
+\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúr téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában legyen kivágva a kép, meg kell keresni azt a négyszöget, amely a kontúrt határolja. Erre egy olyan algoritmust készítettem, amely megkeresi a kontúr koordináták segítségével a négy leghosszabb oldalt, majd kiszámolja ezek metszéspontját. A négy leghosszabb oldal használata feltételezi, hogy a kép közel felső nézetből készült az asztalró, továbbá, hogy a sarkoknál jelenik meg több pont a kontúr keresés után.
 \par Az oldalhosszok számolása a \ref{for:vector_distance} képlet alapján megy végbe,
 
 \begin{equation}
@@ -138,7 +138,7 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
     \label{for:vector_distance}
 \end{equation}
 
-\par ahol $D$ a kiszámolt pontok közti távolság, $(x_a,y_a)$ és $(x_b,y_b)$ pedig a két koordináta, ameyek közt a távot számoljuk. Miután megkaptuk az oldalak hosszait, kiválasszuk a négy legnagyobbat, majd az ezekhez tartozó koordinátákat tároljuk. A kiválasztott pontokat fontos, hogy óramutató járásával ellentétes sorrendben rendezzük, amennyiben nem a négyszög kontúrunk később hibás lehet.
+\par ahol $D$ a kiszámolt pontok közti távolság, $(x_a,y_a)$ és $(x_b,y_b)$ pedig a két koordináta, ameyek közt a táv számolandó. Miután megvannak az oldalak hosszai, eltárolásra kerül a négy legnagyobb oldalhoz tartozó koordináta. A kiválasztott pontoknál fontos, hogy óramutató járásával ellentétes sorrendben legyenek rendezve, amennyiben nem, a négyszög kontúr később hibás lehet.
 \par A metszéspontok kiszámolásához a következő képleteket \cite{line_line} használtam,
 
 \begin{equation}
@@ -183,9 +183,9 @@ def intersection(p1, p2, p3, p4):
 \end{figure}
 
 \subsection{Az asztal kivágása és torzítása}
-Ahhoz, hogy az asztalt a kontúr segítségével kivágjuk a képből, szükségünk lesz egy téglalapra, amely alapján a kivágást elvégezzük. Ebben a részben ennek a folyamatnak a működéséről fogok beszélni.
-\par A folyamat első része abból áll, hogy a kapott négy koordinátából álló kontúr pontjait rendezzük. A pontokat bal felső, jobb felső, jobb alsó és bal alsó sorrendben kell átrendeznünk.
-\newline Az átrendezéshez a \ref{cod:atrendezes} kódrészletet használom,
+Ahhoz, hogy az asztal a kontúr segítségével kivágható legyen a képből, szükség lesz egy téglalapra, amely alapján a kivágás elvégezhető. Ebben a részben ennek a folyamatnak a működéséről fogok beszélni.
+\par A folyamat első részeként a kapott, négy koordinátából álló kontúr pontjait rendezni kell. A pontokat bal felső, jobb felső, jobb alsó és bal alsó pontok szerint kell sorba rendezni.
+\newline Az átrendezéshez a \ref{cod:atrendezes} kódot használom,
 
 \vspace{2mm}
 \hspace{-10mm}
@@ -205,7 +205,7 @@ src[3] = pts[np.argmax(diffs)]
 \end{minipage}
 
 \par ahol először az első két sorban rendezem a koordináta pontokat a \lstinline{pts} változóba és készítek egy \lstinline{src} tömböt a rendezett adatok tárolásához. A következő lépésben, ahhoz, hogy meg tudjam állapítani a pontok relatív helyzetét, készítek az egyes pontokból összegeket (\lstinline{sums}) és különbségeket (\lstinline{diffs}), amelyek az egyes koordináták $x$ és $y$ összetevőinek összegeiből vagy különbségeiből állnak. Ezekből az összegek és különbségekből megállapítható a pontok helyzete, tehát például a bal felső koordinátát az összegek közül a legkisebb érték, a bal alsót a különbségek közül a legnagyobb érték határozza meg, és így a többi koordinátát is. A fent említett műveletek a kódrészlet 7 - 10 soraiban láthatóak.
-\par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükségünk van még a célértékekre is.
+\par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükség van még a célértékekre is.
 \newline A célértékek a \ref{cod:destination} kód soraival adhatóak meg,
 
 \vspace{2mm}
@@ -223,9 +223,9 @@ dst = np.array([
 \end{lstlisting}
 \end{minipage}
 
-\par itt a cél képünk méretei egy érték páros formájában szerepelnek a \lstinline{size} változóban, ezt szélesség és magasság elemekre bontjuk a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg tudjuk adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
+\par itt a cél kép méretei egy érték páros formájában szerepelnek a \lstinline{size} változóban, ezek szélesség és magasság elemekre bomlanak a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg lehet adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
 \par A transzformáció végrehajtásához mindezek után már csak a transzformációs mátrix elkészítésére van szükség, majd a transzformáció végrehajtására.
-\newline Ezeket a \ref{cod:pers_transform} kódrészlettel hajthatjuk végre,
+\newline Ezek a \ref{cod:pers_transform} kódrészlettel hajthatóak végre,
 
 \vspace{2mm}
 \hspace{-10mm}
@@ -236,7 +236,7 @@ warp = cv2.warpPerspective(image, M, size)
 \end{lstlisting}
 \end{minipage}
 
-\par itt \lstinline{M} a transzformációs mátrixunk, amelyet a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapunk meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{opencv_docs} alkalmazunk az \lstinline{image} változóban tárolt képünkre a \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
+\par itt \lstinline{M} a transzformációs mátrix, amely a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapható meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{opencv_docs} alkalmazok az \lstinline{image} változóban tárolt képre az \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
 \subsection{Körkeresés és azonosítás}

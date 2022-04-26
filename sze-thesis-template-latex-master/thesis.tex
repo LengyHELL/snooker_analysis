@@ -65,7 +65,13 @@
 % Tartalomjegyzék
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \tableofcontents\vfill
+\addtocontents{toc}{\protect\thispagestyle{empty}}
 
+% Ábrák listája - a word-ös sablon szerint szükséges
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\clearpage\phantomsection
+\listoffigures
+\addcontentsline{toc}{chapter}{\listfigurename}
 
 % Nyilatkozat és Kivonat
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +85,8 @@
 
 %TODO készítsd el a saját munkád
 \include{content/bevezetes}
+\include{content/snooker}
+\include{content/szoftver}
 \include{content/koncepcio}
 \include{content/analizalas}
 \include{content/megvalositas}
@@ -91,13 +99,6 @@
 % Köszönetnyilvánítás - opcionális
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %\include{content/acknowledgement}
-
-
-% Ábrák listája - a word-ös sablon szerint szükséges
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\clearpage\phantomsection
-\listoffigures
-\addcontentsline{toc}{chapter}{\listfigurename}
 
 
 % Táblázatok listája - opcionális
