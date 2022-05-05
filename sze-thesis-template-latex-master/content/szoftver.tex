@@ -1,8 +1,29 @@
 \chapter{Felhasznált szoftverek}
 
 \section{Az OpenCV képfeldolgozási könyvtár}
-Az OpenCV egy főként \textbf{valós idejű képfeldolgozáshoz} használt programozási függvénykönyvtár. A könyvtár többféle programozási nyelvekhez készült implementációval létezik (pl.: C++, Python, Java stb.)\cite{opencv_library}, ezek közül ebben a projektben Python programozási nyelven keresztül fogom használni.
-\par A könyvtárból használt függvények segítségével kerülnek megnyitásra a képek, továbbá a képeken való műveletek (pl.: szürkeárnyalatolás, élkeresés) is a könyvtár segítségével lesznek végrehajtva. A későbbiekben lesz szó a könyvtárból használt függvényekről, azok működéséről nagyobb részletességben.
+Az OpenCV (Open Source Computer Vision Library) egy főként \textbf{valós idejű képfeldolgozáshoz} használt programozási függvénykönyvtár. A könyvtár többféle programozási nyelvekhez készült implementációval létezik (pl.: C++, Python, Java stb.)\cite{opencv_library}, amelyek közül ebben a projektben a Python programozási nyelvhez készült verziót fogom használni. A szoftver szabadon használható az \textit{Apache License 2.0} alatt.
+\par A függvénykönyvtár fejlesztését az Intel Research kezdeményezte 1999-ben, a CPU intenzív alkalmazások fejlődése érdekében. A projekt lefőbb hozzájárulói az Intel Russia optimalizálással foglalkozó szakemberei, továbbá az Intel Performance Library csapata. \cite{kaehler2016learning}
+\par Kezdetben az OpenCV létrehozásának célja volt, hogy \textbf{nyílt}, \textbf{optimalizált} kódot képezzen gépi látáshoz, valamint, hogy egy \textbf{egységes infrastruktúrát} biztosítson a fejlesztőknek a területen, ezzel megkönnyítve a programkódok olvashatóságát és terjeszthetőségét. Cél volt még, hogy fejlesszék a gépi látásra alapuló kereskedelmi felhasználást, hordozható, teljesítményorientált programkód létrehozásával.\cite{bradski2008learning}
+\par Az OpenCV-t sokféle területen használják, ezek közül néhány:
+\begin{itemize}
+    \setlength\itemsep{-2pt}
+    \item arcfelismerő rendszerek,
+    \item gesztusok felismerése,
+    \item objektumok felismerése,
+    \item szegmentálás és felismerés,
+    \item mozgás felismerés,
+    \item kiterjesztett valóság.
+\end{itemize}
 
-\section{Tensorflow a neurális hálózatokhoz}
-A Tensorflow az OpenCV -hez hasonlóan egy függvénykönyvtár, azzal a különbséggel, hogy a könyvtár a \textbf{neurális hálózatok elkészítését és betanítását} teszi lehetővé.\cite{tensorflow2015-whitepaper} A neurális hálózatok közül itt főként neurális hálózatokat (Neural Network) fogok használni, amelyek a képfeldolgozás, kép osztályozás területén teljesítenek kiemelkedően. A könyvtár eszközeiről szintén részletesebben beszélek majd a későbbi fejezetekben.
+\par A dolgozat keretében a könyvtárból használt függvények segítségével kerülnek megnyitásra a képek, továbbá a képeken való műveletek (pl.: szürkeárnyalatolás, élkeresés) is a könyvtár segítségével lesznek végrehajtva. A későbbiekben lesz szó a könyvtárból használt függvényekről, azok működéséről nagyobb részletességben.
+
+\section{Tensorflow gépi tanulási könyvtár}
+A Tensorflow az OpenCV -hez hasonlóan egy függvénykönyvtár, amely a \textbf{neurális hálózatok elkészítését és betanítását} teszi lehetővé. A Tensorflow egy nyílt forráskódú szoftver könyvtár, használható különböző feladatok elvégzésére is, de főként mély neurális hálózatok betanítására és azokkal való következtetésekre, becslésekre használható. \cite{tensorflow2015-whitepaper}
+\par A Tensorflow a Google Brain csapat által lett kifejlesztve a Google saját kutatásaihoz. Az első verzió az \textit{Apache License 2.0} szoftverlicensz alatt jelent meg, majd később 2019 szeptemberében megjelent a Tensorflow frissített verziója, amelyet Tensorflow 2.0 nak neveztek el.\cite{tensorflow2015-whitepaper}
+\par A könyvtár használható különböző programozási nyelvekben is (Python, C++, Javascript, stb.) amelynek köszönhetően flexibilisen használható külonféle alkalmazásokban. A Tensorflow sokféle funkcióval rendelkezik, ezek közül a következőkben néhányat részletesen megemlítek.
+\par A Tensorflow funkciói közé tartozik, hogy támogatja az \textbf{automatikus differenciálás} (Automatic differentiation) folyamatát, amellyel automatikusan kiszámolható a gradiens vektor egy modelhez, annak paramétereit figyelembe véve. Ez a folyamat különösen hasznos a visszaterjesztéses (Backpropagation) modelleknél, ahol gradiensekre van szükség az optimalizáláshoz. Ahhoz, hogy ez megvalósítható legyen a keretrendszer számon tartja a modell bemenetére végzett műveleteket, majd a modell paramétereitől függően kiszámolja a gradienseket. \cite{tensorflow2015-whitepaper,tensorflow_autodiff}
+\par A könyvtár lehetővé teszi továbbá, a számítások \textbf{elosztását} különböző hardver eszközök közt, ezzel a tanítás és kiértékelés folyamatok nagymértékben felgyorsíthatóak főként komplex, több rétegű modellek esetén.\cite{tensorflow2015-whitepaper}
+\par A modellek tanításához nélkülözhetetlen a \textbf{költségfüggvények használata}, ezek rendelkezésre állnak a könyvtárban. A költségfüggvények szerepe, hogy kiszámolják a \textit{"hibát"}, vagy másnéven eltérést a modell kimenete, és annak az adott bemenethez tartozó elvárt kimenete közt, amely érték segítségével a modell hangolni tudja paramétereit.
+\par A Tensorflow könyvtárban megtalálható egy ún. \textbf{\lstinline{TF.nn}} modul, amelynek segítségével egyszerű műveletek végezhetőek neurális hálózatokon. Ilyen műveletek lehetnek konvolúciók képfelismeréshez, aktivációs függvények (Softmax, RELU, Sigmoid, stb.) és egyéb primitív műveletek.
+\par A könyvtár részét képezik különböző \textbf{optimalizálók}, amelyek a modellek betanításában játszanak szerepet, különböző optimalizálók lehetővé teszik a paraméterek különféle módon való hangolását, ezzel kihatva a modell teljesítményére. Az ilyen optimalizálók közül az egyik legismertebb az \textit{ADAM Optimizer}, amelyet ebben a munkában is felhasználok.
+\par Neurális hálózatok közül főként \textbf{konvolúciós neurális hálózatokat} (Convolutional Neural Network) fogok használni a későbbiekben, amelyek a képfeldolgozás, kép osztályozás területén teljesítenek kiemelkedően. A könyvtár egyes eszközeiről szintén részletesebben beszélek majd a megvalósítással kapcsolatos fejezetben.
