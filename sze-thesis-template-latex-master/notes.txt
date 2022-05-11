@@ -1,19 +1,20 @@
 bevezetés
-    snooker
+
+snooker ismertetése
+
+használt szoftverek
     python?
     opencv
     tensorflow
 
-golyók pozíciójának felismerése
-    ismertetés
+a program megtervezése
     tábla felismerése
-    golyók azonosítása, módszerek
+    golyók pozíciójának felismerése
         template match - no good
         finding circles + template - no good
         nn + circle finding - lesgo
-
-analizálás
-    bruh aeugh
+    analizálás
+        bruh aeugh
 
 megvalósítás
     én módszerem

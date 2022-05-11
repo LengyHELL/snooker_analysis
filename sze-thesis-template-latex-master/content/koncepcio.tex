@@ -1,51 +1,15 @@
-\chapter{A golyók pozíciójának felismerése}
-\section{A probléma ismertetése}
-Ebben a fejezetben a címből is láthatóan az asztal és azon elhelyezkedő \textbf{golyók pozíciójának felismeréséről} lesz szó. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program készítése közben egy valósághű internetes snooker játékról\cite{flyordie} készített felvételeket fogok használni a felismeréshez. A videójátékból származó felvétel azonban bizonyos szempontokból eltér a valóságtól, ezekről később lesz szó, de lényegében jól használható a felismerés elkészítéséhez, továbbá megkönnyíti a tesztelést és a felvételek beszerzését.
-
-\par A bemenő adat a képfelismerési folyamatok után a \ref{tab:felismert_koordinatak} táblázatban látható koordináták formájában lesz elérhető.
-
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[width=100mm, keepaspectratio]{figures/input_table.png}
-    \caption{Egy bemeneti kép az asztal felismerő lépés után.}
-    \label{fig:bemeneti_asztal}
-\end{figure}
-
-\begin{table}[!ht]
-    \caption{A golyó felismerés kimeneti adatai a \ref{fig:bemeneti_asztal} kép alapján.}
-    \label{tab:felismert_koordinatak}
-	\footnotesize
-	\centering
-	\begin{tabular}{ l l l }
-		\toprule
-		golyó színe & x pozíció [0, 1023] & y pozíció [0, 511] \\
-		\midrule
-		yellow & 156 & 176\\
-        brown  & 224 & 254\\
-        green  & 226 & 178\\
-        red    & 460 & 480\\
-        pink   & 464 & 344\\
-        blue   & 514 & 256\\
-        white  & 622 & 472\\
-        red    & 698 & 324\\
-        red    & 724 & 394\\
-        red    & 896 & 250\\
-        black  & 918 & 256\\
-		\bottomrule
-	\end{tabular}
-\end{table}
-
-\par A \ref{fig:bemeneti_asztal} képen már az asztal felismerés után való képet mutatom, a láthatóság megkönnyítése érdekében. A fejezet következő részeiben a bemeneti nyers képről koordinátákra való átalakítás lehetséges módszereit ismertetem lépésekre bontva.
-
+\chapter{A program megtervezése}
 \section{Az asztal felismerése}
-Ez a lépés kicsit elkülönül a többi lépéstől, hiszen a további lépések különféle módszerektől függetlenül, megegyezően ezen a lépésen alapszanak. Ahhoz hogy a további lépések pontosak legyenek és megfeleő teljesítménnyel működjenek, az asztalt mindig azonos méretben, elforgatásban és torzításban kell megkapniuk.
-\par Ebben a módszerben az elforgatáson kívül a detektálás, átméretezés és a torzítás lesz középpontban. Az elforgatást nem veszem figyelembe, hiszen a bemenetről elvárt, hogy bizonyos orientációban álljon rendelkezésre.
+
+Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más mint az asztal, vagy más néven játékterület felismerése. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program készítése közben egy valósághű internetes snooker játékról\cite{flyordie} készített felvételeket fogok használni a felismeréshez. A videójátékból származó felvétel azonban bizonyos szempontokból eltér a valóságtól, ezekről később lesz szó, de lényegében jól használható a felismerés elkészítéséhez, továbbá megkönnyíti a tesztelést és a felvételek beszerzését.
+\par Az asztalfelismerő lépés kicsit elkülönül a többi lépéstől, hiszen a további lépések különféle bemenetszerzési módszerektől függetlenül, megegyezően hajtódnak végre. Ahhoz hogy a további lépések pontosak legyenek és megfeleő teljesítménnyel működjenek, az asztalt mindig azonos méretben, elforgatásban és torzításban kell megkapniuk.
+\par Ebben a módszerben az elforgatást leszámítva a detektálás, átméretezés és a torzítás lesz középpontban. Az elforgatást nem veszem figyelembe, hiszen a bemenetről feltételezhető, hogy bizonyos orientációban áll rendelkezésre.
 
 \par A valódi bemeneti kép, függetlenül annak előállítási módszerétől, a \ref{fig:bemeneti_kep} képen látható.
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen.png}
+    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen.png}
     \caption{Egy nyers bemeneti kép a játék ablakáról.}
     \label{fig:bemeneti_kep}
 \end{figure}
@@ -54,60 +18,25 @@ Ez a lépés kicsit elkülönül a többi lépéstől, hiszen a további lépés
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_hsv.png}
+    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen_hsv.png}
     \caption{A \ref{fig:bemeneti_kep} kép HSV re alakított verziója RGB reprezentációban.}
     \label{fig:bemeneti_kep_hsv}
 \end{figure}
 
-\par Ez az átalakítás azért fontos, mert HSV formátumban könnyebben intervallumok közé lehet szorítani a játékterület zöld színét.
-\newline Ezek az intervallumok:
+\par Ez az átalakítás azért fontos, mert HSV formátumban könnyebben intervallumok közé lehet szorítani a játékterület zöld színét. A HSV konverzió belső működéséről részletesebben a megvalósítás részben lesz szó.
+\newline A HSV konverzió során kapott intervallumok:
 \begin{itemize}
     \setlength\itemsep{-2pt}
     \item árnyalat (Hue),
     \item telítettség (Saturation),
     \item érték (Value).
 \end{itemize}
-\par Az RGB értékekből a HSV értékek kiszámolásához először az értéket (Value) kell kiszámolni, ez a \ref{for:HSV_V} egyenlet\cite{opencv_docs} szerint lehetséges,
-
-\begin{equation}
-    V \leftarrow max(R,G,B)
-    \label{for:HSV_V}
-\end{equation}
-
-\par ahol $V$ az értéket (Value) jelöli, $R$, $G$ és $B$ pedig az adott képpont három színkomponensét (Piros, Zöld, Kék). Az egyenlet alapján az érték a három színkomponens közül a legnagyobbnak az értékét fogja felvenni. Az érték kiszámolásával megadható a telítettség (Saturation).
-\par Ezt a \ref{for:HSV_S} egyenlet\cite{opencv_docs} alapján lehet kiszámolni,
-
-\begin{equation}
-    S \leftarrow
-    \begin{cases}
-        \frac{V-min(R,G,B)}{V} & ,\text{ha}\ V\neq0 \\
-        0 & ,\text{különben}
-    \end{cases}
-    \label{for:HSV_S}
-\end{equation}
-
-\par itt $S$ a telítettséget (Saturation) jelöli, és az előzőekhez hasonlóan $V$ az értéket (Value), $R$, $G$ és $B$ pedig a színkomponenseket, továbbá $min(R,G,B)$ a három színkomponens közül a legkisebbet adja meg.
-\par Az árnyalatot (Hue) szintén az érték (Value) segítségével lehet kiszámolni, ezt a \ref{for:HSV_H} egyenlet\cite{opencv_docs} adja meg,
-
-\begin{equation}
-    H \leftarrow
-    \begin{cases}
-        \frac{60(G-B)}{V-min(R,G,B)} & ,\text{ha}\ V=R \\[5pt]
-        \frac{120+60(B-R)}{V-min(R,G,B)} & ,\text{ha}\ V=G \\[5pt]
-        \frac{240+60(R-G)}{V-min(R,G,B)} & ,\text{ha}\ V=B \\[5pt]
-        0 & ,\text{ha}\ R=G=B
-    \end{cases}
-    \label{for:HSV_H}
-\end{equation}
-
-\par ahol $H$ az árnyalatot (Hue), $V$ az értéket (Value), $R$, $G$ és $B$ a három színkomponenst, $min(R,G,B)$ pedig a színkomponensek közül a minimálisat jelöli.
-\par Amennyiben $H$ értéke kisebb, mint $0$, annak értéke $H \leftarrow H+360$ szerint alakul. A 8-bites és 16-bites színnel rendelkező képeknél $R$, $G$ és $B$ értéke kezdetben normalizálásra kerül a $[0,1]$ intervallumba, ennek következtében a három értéknél $0 \le V \le 1$, $0 \le S \le 1$, $0 \le H \le 360$ tartományok jelentkeznek. Az értékek visszaállítása tartománynak megfelelően 8-bites képek esetében az értékek megszerzése után $V \leftarrow 255V$, $S \leftarrow 255S$ és $H \leftarrow H/2$ szerint megy végbe, ez hasonló 16-bites szín esetében is. 32-bites színnel rendelkező képeknél nincs kezdeti normalizálás, és ennek következtében visszaalakítás sem szükséges.\cite{opencv_docs}
 
 \par A HSV konverzió után az adott specifikus intervallumon kívül helyezkedő értékek maszkolásra kerülnek, hátrahagyva a kívánt játékterület képpontjait. A kép a maszkolás után visszaalakításra kerül az eredeti RGB formátumára. A folyamat után kapott kép a \ref{fig:bemeneti_kep_mask} képen látható.
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_mask.png}
+    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen_mask.png}
     \caption{A \ref{fig:bemeneti_kep} kép a maszkolás után.}
     \label{fig:bemeneti_kep_mask}
 \end{figure}
@@ -125,6 +54,40 @@ Ez a lépés kicsit elkülönül a többi lépéstől, hiszen a további lépés
 
 \section{A golyók azonosítása}
 A golyók azonosítását különféle mószerekkel lehet elvégezni, ezek eltérnek sebességben és pontosságban. A folyamatok bemenete az előzőekben megismert asztal felismerés kimenete lesz, kimenetük pedig a \ref{tab:felismert_koordinatak} táblázatban látható x és y pozíciók, adott golyók színe szerint. A folyamat belső működése módszerenként eltér egymástól, ezeket a módszereket az implementáció egyes iterációjának részeként használtam, majd változtattam meg az elért teljesítmény növeléséhez.
+
+\begin{table}[!ht]
+    \caption{A golyó felismerés kimeneti adatai a \ref{fig:bemeneti_asztal2} kép alapján.}
+    \label{tab:felismert_koordinatak}
+	\footnotesize
+	\centering
+	\begin{tabular}{ l l l }
+		\toprule
+		golyó színe & x pozíció [0, 1023] & y pozíció [0, 511] \\
+		\midrule
+        black  & 914 & 256\\  
+        blue   & 542 & 414\\  
+        brown  & 206 & 368\\  
+        green  & 880 & 316\\  
+        pink   & 808 & 398\\  
+        red    & 744 & 368\\  
+        red    & 172 & 174\\  
+        red    & 846 & 262\\  
+        red    & 706 & 346\\  
+        red    & 854 & 200\\  
+        red    & 874 & 256\\  
+        red    & 924 & 180\\  
+        red    & 802 & 312\\  
+        red    & 814 & 196\\  
+        red    & 840 & 244\\  
+        red    & 938 & 298\\  
+        red    & 870 & 274\\  
+        red    & 858 & 240\\  
+        red    & 854 & 298\\  
+        white  & 162 & 374\\  
+        yellow & 830 & 276\\  
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 \subsection{Azonosítás mintaillesztéssel}
 Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaillesztés egy arányos méretű képet illeszt rá a játékterület képére, majd amennyiben az illeszkedés mértéke meghalad egy bizonyos küszöbértéket, a mintaillesztés iterációjának a pozíciója mentésre kerül. Ebből a pozícióból meghatározható a golyó helyzete. A mintaillesztéshez használt minta a \ref{fig:minta_kep} ábrán látható.
@@ -171,22 +134,14 @@ Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaille
 \subsection{Azonosítás körkeresés és mintaillesztéssel}
 Az előző módszerhez hasonlóan a golyó színek szerinti osztályozása itt is mintaillesztéssel történik, azonban a sebesség növelése érdekében először a golyók helyzetét egy kördetektáló algoritmus határozza meg, majd a kapott értékek jutnak tovább a mintaillesztő algoritmushoz. Ez az egész képen való pásztázás és mintaillesztéshez képest a teljesítményt a minták leszűkített mennyiségének köszönhetően nagymértékben növeli.
 
-\par A körök detektálásához az ún. Hough transzformációt (Hough Transformation) fogom használni, ez a H.K. Yuen, J. Princen, J. Illingworth és J. Kittler et. al. 1990 \cite{YUEN199071} szerint abban az esetben, ha egy kör a kövekező \ref{for:hough_transform} függvénnyel írható le,
-
-\begin{equation}
-    (x - a)^2 + (y - b)^2 = r^2
-    \label{for:hough_transform}
-\end{equation}
-
-\par ahol $a$ és $b$ a kör középpontjának koordinátái és $r$ a sugár, akkor a körvonal élének egy tetszőleges $x_i$, $y_i$ pontja átalakításra kerül egy $a$, $b$, $r$ paraméterek által meghatározott térben elhelyezkedő egyenes kör alapú kúppá.\cite{hough_transform,YUEN199071} Amennyiben az adott pontok egy körvonalon helyezkednek el, a kúpok metszeni fogják egymást a kör $a$, $b$, $r$ pontjainak megfelelően.\cite{YUEN199071}
-\par A körök megtalálásához az algoritmusnak meg kell adni néhány paramétert, ezek közé tartozhat:
+\par A körök megtalálásához a körkereső algoritmusnak meg kell adni néhány paramétert, ezek közé tartoznak:
 \begin{itemize}
     \setlength\itemsep{-2pt}
     \item a keresett körök minimális és maximális sugara,
     \item a keresett körök közti minimális távolság, duplikációk szűréséhez,
     \item az ellenőrzött alakzatok körrel való hasonlóságának küszöbértéke.
 \end{itemize}
-\par Az algoritmus, lefutása után megadja a bemeneti játékterületen talált kör alakú kontúrokat. Ezt a \ref{fig:talalt_korok} ábra szemlélteti.
+\par Az algoritmus lefutás után megadja a bemeneti játékterületen talált kör alakú kontúrokat, ezeket a \ref{fig:talalt_korok} ábra szemlélteti. A körkereső algoritmusról a megvalósítás fejezetben írok részletesebben.
 
 \begin{figure}[!ht]
     \centering
@@ -250,5 +205,4 @@ A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhet�
 
 \par A módszer eredményességének köszönhetően későbbiekben részletesebben ismertetem a megvalósítás fejezetben.
 
-\null
-\vfill
+\section{Analizálás}

@@ -47,7 +47,44 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV. A \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végzem el itt a paraméterek sorban a HSV re konvertált kép, valamint az alsó és felső intenzitás értékek.
+\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV.
+\par A BGR értékekből a HSV értékek kiszámolásához először az értéket (Value) kell kiszámolni, ez a \ref{for:HSV_V} egyenlet\cite{opencv_docs} szerint lehetséges,
+
+\begin{equation}
+    V \leftarrow max(R,G,B)
+    \label{for:HSV_V}
+\end{equation}
+
+\par ahol $V$ az értéket (Value) jelöli, $R$, $G$ és $B$ pedig az adott képpont három színkomponensét (Piros, Zöld, Kék). Az egyenlet alapján az érték a három színkomponens közül a legnagyobbnak az értékét fogja felvenni. Az érték kiszámolásával megadható a telítettség (Saturation).
+\par Ezt a \ref{for:HSV_S} egyenlet\cite{opencv_docs} alapján lehet kiszámolni,
+
+\begin{equation}
+    S \leftarrow
+    \begin{cases}
+        \frac{V-min(R,G,B)}{V} & ,\text{ha}\ V\neq0 \\
+        0 & ,\text{különben}
+    \end{cases}
+    \label{for:HSV_S}
+\end{equation}
+
+\par itt $S$ a telítettséget (Saturation) jelöli, és az előzőekhez hasonlóan $V$ az értéket (Value), $R$, $G$ és $B$ pedig a színkomponenseket, továbbá $min(R,G,B)$ a három színkomponens közül a legkisebbet adja meg.
+\par Az árnyalatot (Hue) szintén az érték (Value) segítségével lehet kiszámolni, ezt a \ref{for:HSV_H} egyenlet\cite{opencv_docs} adja meg,
+
+\begin{equation}
+    H \leftarrow
+    \begin{cases}
+        \frac{60(G-B)}{V-min(R,G,B)} & ,\text{ha}\ V=R \\[5pt]
+        \frac{120+60(B-R)}{V-min(R,G,B)} & ,\text{ha}\ V=G \\[5pt]
+        \frac{240+60(R-G)}{V-min(R,G,B)} & ,\text{ha}\ V=B \\[5pt]
+        0 & ,\text{ha}\ R=G=B
+    \end{cases}
+    \label{for:HSV_H}
+\end{equation}
+
+\par ahol $H$ az árnyalatot (Hue), $V$ az értéket (Value), $R$, $G$ és $B$ a három színkomponenst, $min(R,G,B)$ pedig a színkomponensek közül a minimálisat jelöli.
+\par Amennyiben $H$ értéke kisebb, mint $0$, annak értéke $H \leftarrow H+360$ szerint alakul. A 8-bites és 16-bites színnel rendelkező képeknél $R$, $G$ és $B$ értéke kezdetben normalizálásra kerül a $[0,1]$ intervallumba, ennek következtében a három értéknél $0 \le V \le 1$, $0 \le S \le 1$, $0 \le H \le 360$ tartományok jelentkeznek. Az értékek visszaállítása tartománynak megfelelően 8-bites képek esetében az értékek megszerzése után $V \leftarrow 255V$, $S \leftarrow 255S$ és $H \leftarrow H/2$ szerint megy végbe, ez hasonló 16-bites szín esetében is. 32-bites színnel rendelkező képeknél nincs kezdeti normalizálás, és ennek következtében visszaalakítás sem szükséges.\cite{opencv_docs}
+
+\par Az \ref{cod:maszk} kódrészlethez visszatérve, a \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végzem el, itt a paraméterek sorban a HSV re konvertált kép, valamint az alsó és felső intenzitás értékek.
 \newline A függvény a \ref{for:maszkolas} egyenlet alapján dönti el, a maszk intenzitását,
 
 \begin{equation}
@@ -91,7 +128,7 @@ edges = cv2.Canny(image_gray, 100, 200)
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_edge.png}
+    \includegraphics[width=140mm, keepaspectratio]{figures/input_screen_edge.png}
     \caption{A Canny éldetektálás után kapott kép.}
     \label{fig:bemeneti_kep_edge}
 \end{figure}
@@ -115,7 +152,7 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_contour.png}
+    \includegraphics[width=140mm, keepaspectratio]{figures/input_screen_contour.png}
     \caption{A felismert asztal kontúrja a bináris képen, piros körvonallal keretezve.}
     \label{fig:bemeneti_kep_contour}
 \end{figure}
@@ -177,7 +214,7 @@ def intersection(p1, p2, p3, p4):
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=150mm, keepaspectratio]{figures/input_screen_quad.png}
+    \includegraphics[width=140mm, keepaspectratio]{figures/input_screen_quad.png}
     \caption{A felismert asztal négy pontból álló körvonala a bináris képen, piros körvonallal keretezve.}
     \label{fig:bemeneti_kep_quad}
 \end{figure}
@@ -240,3 +277,11 @@ warp = cv2.warpPerspective(image, M, size)
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
 \subsection{Körkeresés és azonosítás}
+A körök detektálásához az ún. Hough transzformációt (Hough Transformation) fogom használni, ez a H.K. Yuen, J. Princen, J. Illingworth és J. Kittler et. al. 1990 \cite{YUEN199071} szerint abban az esetben, ha egy kör a kövekező \ref{for:hough_transform} függvénnyel írható le,
+
+\begin{equation}
+    (x - a)^2 + (y - b)^2 = r^2
+    \label{for:hough_transform}
+\end{equation}
+
+\par ahol $a$ és $b$ a kör középpontjának koordinátái és $r$ a sugár, akkor a körvonal élének egy tetszőleges $x_i$, $y_i$ pontja átalakításra kerül egy $a$, $b$, $r$ paraméterek által meghatározott térben elhelyezkedő egyenes kör alapú kúppá.\cite{hough_transform,YUEN199071} Amennyiben az adott pontok egy körvonalon helyezkednek el, a kúpok metszeni fogják egymást a kör $a$, $b$, $r$ pontjainak megfelelően.\cite{YUEN199071}
