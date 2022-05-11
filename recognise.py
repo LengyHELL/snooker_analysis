@@ -9,58 +9,51 @@ import tensorflow as tf
 from tensorflow import keras
 
 import cv2
-from analyze import load_image, find_table, cut_and_warp
+from analyze import find_circles, load_image, find_table, cut_and_warp, cut_circles, label_cuts_nn
 
+circle_radius = 9
 labels = ["black", "blue", "brown", "green", "pink", "red", "white", "yellow"]
-model = keras.models.load_model("classifier.h5")
+model = keras.models.load_model("classifier_combined3.h5")
 
 #img = load_image("misc/images/00000001.jpg")
-img = load_image("misc/input_screen.png")
+img = load_image("misc/png/input_screen.png")
 img_orig = cv2.resize(img, (800, 450))
 
 data = []
 
 start_time = time.time()
-cnt = find_table(img)
-if cnt is not None:
+try:
+    cnt = find_table(img)
+    if cnt is None:
+        raise Exception("Table not found!")
     img = cut_and_warp(img, cnt, (1024, 512))
 
     out = img.copy()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 15, param1=30, param2=14, minRadius=5, maxRadius=11)
+    circles = find_circles(img, circle_radius)
 
-    cuts = []
-    rects = []
-    if circles is not None:
-        circles = np.round(circles[0,:]).astype("int")
+    if circles is None:
+        raise Exception("Failed to find circles!")
 
-        for (x, y, r) in circles:
-            x, y, w, h = (x-9, y-9, 18, 18)
-            if (x >= 0) and (y >= 0) and ((x + w) < img.shape[1]) and ((y + h) < img.shape[0]):
-                cuts.append(img[y:y+h, x:x+w])
-                rects.append(((x, y), (x+w, y+h)))
+    cuts, rects = cut_circles(img, circles, circle_radius, mode="combined")
 
-        cuts = np.array(cuts)
-        norms = np.array(cuts / 255)
-        if len(norms) > 0:
-            pred = model.predict(norms)
-            for i in range(len(rects)):
-                x, y = rects[i][0]
-                xx, yy = rects[i][1]
-                data.append([int((x + xx) / 2), int((y + yy) / 2), labels[np.argmax(pred[i])]])
-                cv2.rectangle(out, rects[i][0], rects[i][1], (0, 0, 255), 2)
-                cv2.putText(out, labels[np.argmax(pred[i])], (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
-                #cv2.circle(out, (x + 9, y + 9), 10, (0, 0, 255), 2)
-        else:
-            pred = np.array([])
-        cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
-    else:
-        print("No circles found!")
-        cv2.imwrite("./misc/output.png", cv2.resize(out, (900, 450)))
+    ids, _ = label_cuts_nn(cuts, model)
+    if ids is None:
+        raise Exception("Failed to label candidates!")
+
+    for i, id in enumerate(ids):
+        x, y = rects[i][0]
+        data.append([x + circle_radius, y + circle_radius, labels[id]])
+        cv2.rectangle(out, rects[i][0], rects[i][1], (0, 0, 255), 2)
+        cv2.putText(out, labels[id], (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+        #cv2.circle(out, (x + 9, y + 9), 10, (0, 0, 255), 2)
+except Exception as e:
+    pred = np.array([])
+    cv2.imwrite("./misc/output.png", cv2.resize(img, (900, 450)))
 else:
     print("No table found!")
-    cv2.imwrite("./misc/output.png", img_orig)
+    cv2.imwrite("./misc/output.png", out)
 
 print("%-27s -> | %d ms" % ("Total", (time.time() - start_time) * 1000))
 data.sort(key=lambda x : x[2])
