@@ -6,9 +6,7 @@ A megvalósítás során az eddig megismert módszereket fogom felhasználni, az
 \par Az eddig megismert módszerek közül elsősorban a nyers bemenetből emelem ki a játékterületet, ezt követően a golyók pozíciójának felismeréséhez kör detektálást és egy neurális hálózatot fogok használni. A neurális hálózat betanításához az adatkészletet kör detektálással, mintaillesztéssel és kézi válogatással fogom elkészíteni. A következőkben az egyes függvények működését, azokban felhasznált külső könyvtárak eszközeit ismertetem részleteiben.
 \par A fejezetek felosztása az eddig megismert lépések szerint kerül rendezésre.
 
-\section{A golyók pozíciója}
-
-\subsection{A szükséges könyvtárak importálása}
+\section{A szükséges könyvtárak importálása}
 Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programnak, hogy használja a külső könyvtárakat.
 \newline Ez a \ref{cod:import} kódsorok alapján tehető meg.
 
@@ -24,7 +22,8 @@ import cv2
 
 \par A \lstinline{math} könyvtár segítségével matematikai műveleteket (gyökvonás, szinusz, koszinusz) lehet végezni, a \lstinline{numpy} könyvtár a tömbök, mátrixok kezelését, azokkal való műveleteket segíti és gyorsítja, a \lstinline{cv2} pedig az OpenCV eszközeit teszi elérhetővé.
 
-\subsection{Az asztal kontúrjának megkeresése}
+\section{Az asztal kontúrjának megkeresése}
+\label{section:megv_asztal_kontur}
 A nyers képből a játékterület megszerzéséhez azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
 \par A betöltött kép tömbjének alakja megegyezik a kép szélességével és magasságával, továbbá az intenzitási értékekkel, tehát egy 1024 x 512 méretű RGB képet betöltve, annak tömbjének az első és második dimenziója 1024 és 512, a harmadik pedig az RGB (Piros, Zöld, Kék) intenzitásoknak megfelelően 3 méretű.
 \par Fontos megjegyezni, hogy az OpenCV a képeket betöltéskor BGR formátumban tölti be, ez az elnevezésből adódóan annyiban tér el az RGB formátumtól, hogy a piros (R) és kék (B) színcsatornák fel vannak cserélve.
@@ -109,7 +108,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \begin{lstlisting}[language=Python, numbers=left, caption={Szürkeárnyalatolás és éldetektálás.}, label={cod:gray_and_canny}]
 image_gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
 
-edges = cv2.Canny(image_gray, 100, 200)
+edges = cv2.Canny(image_gray, 200, 100)
 \end{lstlisting}
 \end{minipage}
 
@@ -219,7 +218,7 @@ def intersection(p1, p2, p3, p4):
     \label{fig:bemeneti_kep_quad}
 \end{figure}
 
-\subsection{Az asztal kivágása és torzítása}
+\section{Az asztal kivágása és torzítása}
 Ahhoz, hogy az asztal a kontúr segítségével kivágható legyen a képből, szükség lesz egy téglalapra, amely alapján a kivágás elvégezhető. Ebben a részben ennek a folyamatnak a működéséről fogok beszélni.
 \par A folyamat első részeként a kapott, négy koordinátából álló kontúr pontjait rendezni kell. A pontokat bal felső, jobb felső, jobb alsó és bal alsó pontok szerint kell sorba rendezni.
 \newline Az átrendezéshez a \ref{cod:atrendezes} kódot használom,
@@ -276,7 +275,7 @@ warp = cv2.warpPerspective(image, M, size)
 \par itt \lstinline{M} a transzformációs mátrix, amely a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapható meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{opencv_docs} alkalmazok az \lstinline{image} változóban tárolt képre az \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
-\subsection{Körkeresés és azonosítás}
+\section{Körkeresés}
 A körök detektálásához az ún. Hough transzformációt (Hough Transformation) fogom használni, ez a H.K. Yuen, J. Princen, J. Illingworth és J. Kittler et. al. 1990 \cite{YUEN199071} szerint abban az esetben, ha egy kör a kövekező \ref{for:hough_transform} függvénnyel írható le,
 
 \begin{equation}
@@ -285,3 +284,46 @@ A körök detektálásához az ún. Hough transzformációt (Hough Transformatio
 \end{equation}
 
 \par ahol $a$ és $b$ a kör középpontjának koordinátái és $r$ a sugár, akkor a körvonal élének egy tetszőleges $x_i$, $y_i$ pontja átalakításra kerül egy $a$, $b$, $r$ paraméterek által meghatározott térben elhelyezkedő egyenes kör alapú kúppá.\cite{hough_transform,YUEN199071} Amennyiben az adott pontok egy körvonalon helyezkednek el, a kúpok metszeni fogják egymást a kör $a$, $b$, $r$ pontjainak megfelelően.\cite{YUEN199071}
+\par Az algoritmus lefutása után a metszéspontok megadják az egyes körök pozícióját, amelyeket könnyedén tárolni lehet egy listában.
+\par A körkereső algoritmus a programkód formájában a \ref{cod:hough_circle} kódrészletben látható.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=Python, numbers=left, caption={A körkereső algoritmus.}, label={cod:hough_circle}]
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+minRadius = 5
+maxRadius = 11
+minDistance = 15
+
+circles = cv2.HoughCircles(
+    gray,
+    cv2.HOUGH_GRADIENT,
+    1,
+    minDistance,
+    param1=80,
+    param2=15,
+    minRadius=minRadius,
+    maxRadius=maxRadius)
+\end{lstlisting}
+\end{minipage}
+
+\par A kódrészletben a Hough transzformációt a \lstinline{cv2.HoughCircles} függvény\cite{opencv_docs} végzi el, ennek első paramétere egy szürkeárnyalatos kép, amely a kivágott asztal konvertálásával kerül bele a \lstinline{gray} változóba, a konvertálás a már megismert \lstinline{cv2.cvtColor} függvénnyel\cite{opencv_docs} megy végbe.
+\par A második paraméter az előzőleg megismert Hough transzformációs módszert\cite{opencv_docs,hough_transform,YUEN199071} adja meg a \lstinline{cv2.HOUGH_GRADIENT} kulcsszóval, továbbá a harmadik paraméter a folyamathoz felhasznált képet skálázza. A skálázas az eredeti kép felbontást \lstinline{1} értékkel nem változtatja, \lstinline{2} értékkel felére csökkenti azt, fordított arányosságnak megfelelően\cite{opencv_docs}. Ez a paraméter a folyamat lefutásának gyorsítását teszi lehetővé, azonban, akárcsak a jelenlegi esetben, kisebb körök detektálásához jobb az eredeti felbontás megtartása.
+\par A \lstinline{minRadius} (minimális sugár), \lstinline{maxRadius} (maximális sugár) és \lstinline{minDistance} (minimális távolság) paraméterek megadják a keresett körök tulajdonságait, így növelhető az algoritmus teljesítménye és csökkenthető a duplikációk előfordulása. A \lstinline{param1} és \lstinline{param2} névvel ellátott paraméterek a \lstinline{cv2.HOUGH_GRADIENT} használatakor az algoritmus kezdeti feldolgozó lépéseként végrehajtott Canny éldetektálás felső (\lstinline{param1}) és alsó (\lstinline{param2}) küszöbértékét adják meg\cite{opencv_docs}. Ez a Canny éldetektálás a \ref{section:megv_asztal_kontur} alfejezetben megismert módszerrel megegyezően hajtódik végre.
+\par A folyamat lefutása után a körök pozíciója és mérete ismeretében jelölni tudjuk őket a kivágott képen. Ezt szemlélteti a \ref{chapter:program_tervezes} fejezet \ref{fig:talalt_korok} ábrája.
+
+\section{A detektált körök osztályozása}
+
+\subsection{Osztályozás mintaillesztéssel}
+A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ez a \ref{for:cross_correlation} képletben látható\cite{kaehler2016learning, opencv_docs}.
+
+\begin{equation}
+    R(x, y) = \frac{\sum_{x',y'}(T(x',y') \cdot I(x + x', y + y'))}{\sqrt{\sum_{x',y'}T(x',y')^2 \cdot \sum_{x',y'}I(x + x',y + y')^2}}
+    \label{for:cross_correlation}
+\end{equation}
+
+\par A képletben az $x$ és $y$ az eredeti képen vizsgált terület bal felső sarkát, $x'$ és $y'$ a minta képnek az adott képpontját, $T$ a minta képet és $I$ az eredeti képet jelöli.
+
+\subsection{Osztályozás neurális hálózattal}

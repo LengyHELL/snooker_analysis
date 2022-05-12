@@ -18,8 +18,11 @@ a program megtervezése
 
 megvalósítás
     én módszerem
-    tábla felimserés
-    golyó azonosítás
+    import - tensorflow kell még
+    asztal keresés
+    asztal kivágás
+    golyó keresés
+    golyó osztályozás
 
 problémák
 összefoglalás

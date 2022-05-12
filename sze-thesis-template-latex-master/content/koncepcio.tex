@@ -1,4 +1,5 @@
 \chapter{A program megtervezése}
+\label{chapter:program_tervezes}
 \section{Az asztal felismerése}
 
 Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más mint az asztal, vagy más néven játékterület felismerése. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program készítése közben egy valósághű internetes snooker játékról\cite{flyordie} készített felvételeket fogok használni a felismeréshez. A videójátékból származó felvétel azonban bizonyos szempontokból eltér a valóságtól, ezekről később lesz szó, de lényegében jól használható a felismerés elkészítéséhez, továbbá megkönnyíti a tesztelést és a felvételek beszerzését.
@@ -100,14 +101,6 @@ Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaille
 \end{figure}
 
 \par A \ref{fig:minta_kep} minta felbontása láthatóan alacsony, azonban túl nagy felbontás esetén a folyamat meglehetősen lassabban megy végbe, továbbá a minta méretét még a felismert játékterület mérete is meghatározza.
-\par A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ez a \ref{for:cross_correlation} képletben látható\cite{kaehler2016learning, opencv_docs}.
-
-\begin{equation}
-    R(x, y) = \frac{\sum_{x',y'}(T(x',y') \cdot I(x + x', y + y'))}{\sqrt{\sum_{x',y'}T(x',y')^2 \cdot \sum_{x',y'}I(x + x',y + y')^2}}
-    \label{for:cross_correlation}
-\end{equation}
-
-\par A képletben az $x$ és $y$ az eredeti képen vizsgált terület bal felső sarkát, $x'$ és $y'$ a minta képnek az adott képpontját, $T$ a minta képet és $I$ az eredeti képet jelöli.
 \par A mintaillesztés problémái közé tartozik, hogy a zöld golyó mintaillesztésénél a küszöbértéket beállítani nehéz, és az eredmény pontatlan, lásd \ref{fig:rossz_zold}.
 
 \begin{figure}[!ht]
@@ -153,7 +146,7 @@ Az előző módszerhez hasonlóan a golyó színek szerinti osztályozása itt i
 \par Ez a módszer körök megtalálására jól használható, a mintaillesztéshez szükséges képek könnyedén kivághatók az eredeti képből a körök paraméterei alapján. A probléma szintén a mintaillesztéssel van, hiszen a kivágott körök az előzőleg megismert mintaillesztéssel kerülnek beazonosításra. Ez sajnos az eddig megismert hibákat vonja maga után, annak ellenére, hogy a sebesség javul. Viszont akárcsak a szimpla mintaillesztéses módszer ez a módszer is alkalmas adatkészletek elkészítésére, és a kapott adatok kézzel ellenőrzését nagymértékben megkönnyíti.
 
 \subsection{Azonosítás körkeresés és gépi tanulás segítségével}
-A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhető neurális hálózat segítségével. Ez a játékterület egy kerettel való képpontonkénti végigpásztázásával szintén megoldható, azomban körkeresésnél megismert Hough transzformációval jobb teljesítmény érhető el.
+A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhető neurális hálózat segítségével. Ez a játékterület egy kerettel való képpontonkénti végigpásztázásával szintén megoldható, azonban körkeresésnél megismert Hough transzformációval jobb teljesítmény érhető el.
 
 \par A következőkben a körkeresés eredményeképp kapott, a bemeneti játékterület képéből kivágott golyók osztályozásáról lesz szó neurális hálózat segítségével. A kivágott képek fogják a bemenetet képezni, majd a neurális hálózat azt osztályozza egy 0 tól 7 ig terjedő egész számként. Ezek a számok a golyók színeit reprezentálják, lásd \ref{tab:golyo_azonositok} táblázat.
 
