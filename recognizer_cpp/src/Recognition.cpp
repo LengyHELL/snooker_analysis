@@ -16,15 +16,15 @@ bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
     return lhs.distance < rhs.distance;
 }
 
-Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fdeep::load_model("nn_models/classifier_combined3.json")) {
-    templates.push_back(Template(loadImage("./templates/black_ball_hd.png"), BallLabel::BLACK));
-    templates.push_back(Template(loadImage("./templates/blue_ball_hd.png"), BallLabel::BLUE));
-    templates.push_back(Template(loadImage("./templates/brown_ball_hd.png"), BallLabel::BROWN));
-    templates.push_back(Template(loadImage("./templates/green_ball_hd.png"), BallLabel::GREEN));
-    templates.push_back(Template(loadImage("./templates/pink_ball_hd.png"), BallLabel::PINK));
-    templates.push_back(Template(loadImage("./templates/red_ball_hd.png"), BallLabel::RED));
-    templates.push_back(Template(loadImage("./templates/white_ball_hd.png"), BallLabel::WHITE));
-    templates.push_back(Template(loadImage("./templates/yellow_ball_hd.png"), BallLabel::YELLOW));
+Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fdeep::load_model("./recognizer_cpp/nn_models/classifier_combined3.json")) {
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/black_ball_hd.png"), BallLabel::BLACK));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/blue_ball_hd.png"), BallLabel::BLUE));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/brown_ball_hd.png"), BallLabel::BROWN));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/green_ball_hd.png"), BallLabel::GREEN));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/pink_ball_hd.png"), BallLabel::PINK));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/red_ball_hd.png"), BallLabel::RED));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/white_ball_hd.png"), BallLabel::WHITE));
+    templates.push_back(Template(loadImage("./recognizer_cpp/templates/yellow_ball_hd.png"), BallLabel::YELLOW));
 
     for (int i = 0; i < 8; i++) {
         BallLabel label = static_cast<BallLabel>(i);
