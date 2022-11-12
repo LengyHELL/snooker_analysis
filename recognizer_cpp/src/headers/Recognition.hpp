@@ -61,8 +61,9 @@ class Recognition {
 
 
 public:
-	cv::Scalar lowerGreen;
-    cv::Scalar upperGreen;
+	cv::Scalar lowerGreen = cv::Scalar(40, 190, 50);
+    cv::Scalar upperGreen = cv::Scalar(65, 255, 255);
+	int kernelIterations = 1;
 
     Recognition();
 

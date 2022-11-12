@@ -1,5 +1,10 @@
 #include <Recognition.hpp>
 
+void showImageWithContours(cv::Mat image, const std::vector<std::vector<cv::Point>>& contours, int index = -1) {
+	cv::drawContours(image, contours, index, cv::Scalar(255, 0, 0));
+	cv::imshow("test", image);
+}
+
 cv::Mat loadImage(std::string location) {
     return cv::imread(location, cv::IMREAD_COLOR);
 }
@@ -108,10 +113,10 @@ void Recognition::findTable(const cv::Mat& image) {
     cv::Canny(imageGray, imageCanny, 1.0 * threshold, 0.5 * threshold);
 
     float firstKernelData[] = {0, 0, 1, 0, 0,
-                                0, 0, 1, 0, 0,
-                                1, 1, 1, 1, 1,
-                                0, 0, 1, 0, 0,
-                                0, 0, 1, 0, 0};
+                               0, 0, 1, 0, 0,
+                               1, 1, 1, 1, 1,
+                               0, 0, 1, 0, 0,
+                               0, 0, 1, 0, 0};
     
     float secondKernelData[] = {1, 0, 0, 0, 1,
                                 0, 1, 0, 1, 0,
@@ -121,9 +126,12 @@ void Recognition::findTable(const cv::Mat& image) {
     
     cv::Mat firstKernel(5, 5, CV_8U, firstKernelData);
     cv::Mat secondKernel(5, 5, CV_8U, secondKernelData);
+
+    cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size( 3, 3 ));
+    cv::dilate(imageCanny, imageCanny, element, cv::Point(-1, -1), kernelIterations);
     
-    cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, firstKernel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
-    cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, secondKernel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
+    cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, firstKernel, cv::Point(-1, -1), kernelIterations, cv::BORDER_REPLICATE);
+    cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, secondKernel, cv::Point(-1, -1), kernelIterations, cv::BORDER_REPLICATE);
 
     cv::findContours(imageCanny, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
