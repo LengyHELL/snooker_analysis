@@ -1,11 +1,5 @@
 #include "headers/Recognition.hpp"
 
-
-void showImageWithContours(cv::Mat image, const std::vector<std::vector<cv::Point>>& contours, int index = -1) {
-	cv::drawContours(image, contours, index, cv::Scalar(255, 0, 0));
-	cv::imshow("test", image);
-}
-
 void drawFrameTime(cv::Mat image, const int& frameTime) {
 	cv::putText(image, "Frametime:" + std::to_string(frameTime) + " ms", cv::Point(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
 }
@@ -14,6 +8,51 @@ void drawPath(cv::Mat& image, const std::vector<cv::Point>& path, const cv::Scal
 	for (int i = 1; i < path.size(); i++) {
 		cv::line(image, path[i - 1], path[i], color);
 	}
+}
+
+void createTrackbars(cv::Scalar lower, cv::Scalar upper, int kernelIterations) {
+	cv::createTrackbar("LG_H", "trackbars", NULL, 255);
+	cv::createTrackbar("LG_S", "trackbars", NULL, 255);
+	cv::createTrackbar("LG_V", "trackbars", NULL, 255);
+
+	cv::createTrackbar("UG_H", "trackbars", NULL, 255);
+	cv::createTrackbar("UG_S", "trackbars", NULL, 255);
+	cv::createTrackbar("UG_V", "trackbars", NULL, 255);
+
+
+	cv::setTrackbarPos("LG_H", "trackbars", lower[0]);
+	cv::setTrackbarPos("LG_S", "trackbars", lower[1]);
+	cv::setTrackbarPos("LG_V", "trackbars", lower[2]);
+
+	cv::setTrackbarPos("UG_H", "trackbars", upper[0]);
+	cv::setTrackbarPos("UG_S", "trackbars", upper[1]);
+	cv::setTrackbarPos("UG_V", "trackbars", upper[2]);
+
+	
+	cv::createTrackbar("KERNEL_ITER", "trackbars", NULL, 10);
+	cv::setTrackbarPos("KERNEL_ITER", "trackbars", kernelIterations);
+	cv::setTrackbarMin("KERNEL_ITER", "trackbars", 1);
+}
+
+cv::Scalar getHSVTrackbar(bool lower) {
+	if (lower) {
+		return cv::Scalar(
+			cv::getTrackbarPos("LG_H", "trackbars"),
+			cv::getTrackbarPos("LG_S", "trackbars"),
+			cv::getTrackbarPos("LG_V", "trackbars")
+		);
+	}
+	else {
+		return cv::Scalar(
+			cv::getTrackbarPos("UG_H", "trackbars"),
+			cv::getTrackbarPos("UG_S", "trackbars"),
+			cv::getTrackbarPos("UG_V", "trackbars")
+		);
+	}
+}
+
+int getIteratorTrackbar() {
+	return cv::getTrackbarPos("KERNEL_ITER", "trackbars");
 }
 
 int main(int argc, char** argv) {
@@ -30,17 +69,7 @@ int main(int argc, char** argv) {
 	Recognition recognition;
 
 	cv::namedWindow("trackbars");
-
-	int lowerGreen[3] = {40, 190, 50};
-	int upperGreen[3] = {65, 255, 255};
-
-	cv::createTrackbar("LG_H", "trackbars", &lowerGreen[0], 255);
-	cv::createTrackbar("LG_S", "trackbars", &lowerGreen[1], 255);
-	cv::createTrackbar("LG_V", "trackbars", &lowerGreen[2], 255);
-
-	cv::createTrackbar("UG_H", "trackbars", &upperGreen[0], 255);
-	cv::createTrackbar("UG_S", "trackbars", &upperGreen[1], 255);
-	cv::createTrackbar("UG_V", "trackbars", &upperGreen[2], 255);
+	createTrackbars(recognition.lowerGreen, recognition.upperGreen, recognition.kernelIterations);
 
 	cv::Mat blank = cv::Mat::zeros(cv::Size(300, 1),CV_8UC1);
 	cv::imshow("trackbars", blank);
@@ -48,8 +77,9 @@ int main(int argc, char** argv) {
 	while(videoCapture.read(videoFrame)) {
 		auto timerStart = std::chrono::high_resolution_clock::now();
 
-		recognition.lowerGreen = cv::Scalar(lowerGreen[0], lowerGreen[1], lowerGreen[2]);
-		recognition.upperGreen = cv::Scalar(upperGreen[0], upperGreen[1], upperGreen[2]);
+		recognition.lowerGreen = getHSVTrackbar(true);
+		recognition.upperGreen = getHSVTrackbar(false);
+		recognition.kernelIterations = getIteratorTrackbar();
 
 		cv::Mat processedImage = recognition.processFrameWithNN(videoFrame);
 
@@ -57,7 +87,9 @@ int main(int argc, char** argv) {
 
 		drawPath(processedImage, recognition.getBallPath(BallLabel::RED, 10));
 
-		cv::imshow("warped image", processedImage);
+		cv::Mat resizedImage;
+		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
+		cv::imshow("warped image", resizedImage);
 
 		if ((cv::waitKey(1) & 0xFF) == 'q') {
 			cv::destroyAllWindows();
