@@ -4,6 +4,16 @@
 .vscode
 /old_scripts
 
+#classifier
+classifier/models
+
+#recognizer_cpp
+recognizer_cpp/build
+recognizer_cpp/build_win
+recognizer_cpp/includes
+recognizer_cpp/videos
+recognizer_cpp/templates
+
 #latex
 /sze-thesis-template-latex-master/old_content/
 /sze-thesis-template-latex-master/*.gz

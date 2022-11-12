@@ -10,7 +10,7 @@ from tensorflow import keras
 
 import cv2
 
-directory = "./misc/dataset4"
+directory = "../misc/dataset4"
 classes = np.array(["black", "blue", "brown", "green", "pink", "red", "white", "yellow"])
 
 lengths = []
