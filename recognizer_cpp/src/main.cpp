@@ -74,6 +74,10 @@ int main(int argc, char** argv) {
 	cv::Mat blank = cv::Mat::zeros(cv::Size(300, 1),CV_8UC1);
 	cv::imshow("trackbars", blank);
 
+	int currentFrame = 0;
+	const int maxFrames = 3;
+	bool keyLock = false;
+
 	while(videoCapture.read(videoFrame)) {
 		auto timerStart = std::chrono::high_resolution_clock::now();
 
@@ -81,19 +85,41 @@ int main(int argc, char** argv) {
 		recognition.upperGreen = getHSVTrackbar(false);
 		recognition.kernelIterations = getIteratorTrackbar();
 
-		cv::Mat processedImage = recognition.processFrameWithNN(videoFrame);
+		recognition.processFrameWithNN(videoFrame);
+		cv::Mat processedImage;
+
+		switch(currentFrame) {
+			case 0: default:
+				processedImage = recognition.processedFramePath;
+				drawPath(processedImage, recognition.getBallPath(BallLabel::RED, 10));
+				break;
+			case 1: processedImage = recognition.debugFrameCanny; break;
+			case 2: processedImage = recognition.debugFrameMask; break;
+			case 3: processedImage = recognition.debugFrameCircles; break;
+		}
 
 		drawFrameTime(processedImage, duration.count());
 
-		drawPath(processedImage, recognition.getBallPath(BallLabel::RED, 10));
-
 		cv::Mat resizedImage;
 		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
-		cv::imshow("warped image", resizedImage);
+		cv::imshow("snooker recognition", resizedImage);
 
-		if ((cv::waitKey(1) & 0xFF) == 'q') {
+		char key = cv::waitKey(1);
+		if (key == 'q') {
 			cv::destroyAllWindows();
 			break;
+		}
+		else if (key == 'a') {
+			currentFrame--;
+			if (currentFrame < 0) {
+				currentFrame = 0;
+			}
+		}
+		else if (key == 'd') {
+			currentFrame++;
+			if (currentFrame > maxFrames) {
+				currentFrame = maxFrames;
+			}
 		}
 
 		auto timerStop = std::chrono::high_resolution_clock::now();

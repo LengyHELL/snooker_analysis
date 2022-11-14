@@ -107,6 +107,8 @@ void Recognition::findTable(const cv::Mat& image) {
     cv::inRange(hsv, lowerGreen, upperGreen, mask);
     cv::bitwise_and(image, image, result, mask);
 
+    debugFrameMask = result;
+
     cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
     float threshold = cv::threshold(imageGray, imageThreshold, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
 
@@ -132,6 +134,8 @@ void Recognition::findTable(const cv::Mat& image) {
     
     cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, firstKernel, cv::Point(-1, -1), kernelIterations, cv::BORDER_REPLICATE);
     cv::morphologyEx(imageCanny, imageCanny, cv::MORPH_CLOSE, secondKernel, cv::Point(-1, -1), kernelIterations, cv::BORDER_REPLICATE);
+
+    debugFrameCanny = imageCanny;
 
     cv::findContours(imageCanny, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
@@ -182,9 +186,17 @@ bool Recognition::cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage) {
 }
 
 void Recognition::findBalls(const cv::Mat& image) {
-    cv::Mat imageGray, imageThreshold, imageHough;
+    cv::Mat hsv, mask, result, imageGray, imageThreshold, imageHough;
 
-    cv::cvtColor(image, imageGray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
+
+    cv::inRange(hsv, lowerGreen, upperGreen, mask);
+    cv::bitwise_not(mask, mask);
+
+    cv::bitwise_and(image, image, result, mask);
+    cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
+
+    debugFrameCircles = result;
 
     float threshold = cv::threshold(imageGray, imageThreshold, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
     threshold *= 0.8;
@@ -193,15 +205,16 @@ void Recognition::findBalls(const cv::Mat& image) {
         return;
     }
 
-    float minRadius = circleRadius * 0.6; // 0.6
-    float maxRadius = circleRadius * 1.5; // 1.2
-    float minDistance = circleRadius * 1.6; // 1.6
+    float minRadius = circleRadius * (float(minRadiusRate) / 10);
+    float maxRadius = circleRadius * (float(maxRadiusRate) / 10);
+    float minDistance = circleRadius * (float(minDistanceRate) / 10);
 
     std::vector<cv::Vec3f> vecs;
-    cv::HoughCircles(imageGray, vecs, cv::HOUGH_GRADIENT, 1, minDistance, threshold, 15, minRadius, maxRadius);
+    cv::HoughCircles(imageGray, vecs, cv::HOUGH_GRADIENT, 1, minDistance, threshold, circlePerfectness, minRadius, maxRadius);
 
     balls.clear();
     for (auto& vec : vecs) {
+        cv::circle(result, cv::Point(vec[0], vec[1]), vec[2], cv::Scalar(255, 128, 0));
         vec[2] = circleRadius;
         balls.push_back(vec);
     }
@@ -329,13 +342,14 @@ void Recognition::labelBallsWithNN() {
     }
 }
 
-cv::Mat Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
+void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
     findTable(videoFrame);
 
     cv::Mat imageWarped;
 
     if (!cutAndWarp(videoFrame, imageWarped)) {
-        return videoFrame;
+        processedFramePath = videoFrame;
+        return;
     }
 
     findBalls(imageWarped);
@@ -408,7 +422,7 @@ cv::Mat Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
         cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
     }
 
-    return imageWarped;
+    processedFramePath = imageWarped;
 }
 
 std::vector<cv::Point> Recognition::getBallPath(const BallLabel& label, const int& id) const {

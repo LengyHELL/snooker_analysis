@@ -61,12 +61,23 @@ class Recognition {
 
 
 public:
-	cv::Scalar lowerGreen = cv::Scalar(40, 190, 50);
-    cv::Scalar upperGreen = cv::Scalar(65, 255, 255);
+	cv::Mat debugFrameCanny;
+
+	cv::Mat debugFrameMask;
+	cv::Scalar lowerGreen = cv::Scalar(50, 0, 111);		// 40, 190, 50
+    cv::Scalar upperGreen = cv::Scalar(65, 255, 255);	// 65, 255, 255
 	int kernelIterations = 1;
+
+	cv::Mat debugFrameCircles;
+	int minRadiusRate = 7;		// 6
+	int maxRadiusRate = 14;		// 12
+	int minDistanceRate = 12;	// 16
+	int circlePerfectness = 10;	// 15
+
+	cv::Mat processedFramePath;
 
     Recognition();
 
-	cv::Mat processFrameWithNN(const cv::Mat& videoFrame);
+	void processFrameWithNN(const cv::Mat& videoFrame);
 	std::vector<cv::Point> getBallPath(const BallLabel& label, const int& id = 0) const;
 };
