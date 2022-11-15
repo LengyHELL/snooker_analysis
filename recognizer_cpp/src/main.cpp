@@ -11,30 +11,6 @@ void drawPath(cv::Mat& image, const std::vector<cv::Point>& path, const cv::Scal
 	}
 }
 
-void createTrackbars(cv::Scalar lower, cv::Scalar upper, int kernelIterations) {
-	cv::createTrackbar("LG_H", "trackbars", NULL, 255);
-	cv::createTrackbar("LG_S", "trackbars", NULL, 255);
-	cv::createTrackbar("LG_V", "trackbars", NULL, 255);
-
-	cv::createTrackbar("UG_H", "trackbars", NULL, 255);
-	cv::createTrackbar("UG_S", "trackbars", NULL, 255);
-	cv::createTrackbar("UG_V", "trackbars", NULL, 255);
-
-
-	cv::setTrackbarPos("LG_H", "trackbars", lower[0]);
-	cv::setTrackbarPos("LG_S", "trackbars", lower[1]);
-	cv::setTrackbarPos("LG_V", "trackbars", lower[2]);
-
-	cv::setTrackbarPos("UG_H", "trackbars", upper[0]);
-	cv::setTrackbarPos("UG_S", "trackbars", upper[1]);
-	cv::setTrackbarPos("UG_V", "trackbars", upper[2]);
-
-	
-	cv::createTrackbar("KERNEL_ITER", "trackbars", NULL, 10);
-	cv::setTrackbarPos("KERNEL_ITER", "trackbars", kernelIterations);
-	cv::setTrackbarMin("KERNEL_ITER", "trackbars", 1);
-}
-
 TrackbarWindow<double> getHSVTrackbarWindow(Recognition& recognition) {
 	TrackbarWindow<double> hsvTrackbars("hsv_trackbars");
 
@@ -47,6 +23,7 @@ TrackbarWindow<double> getHSVTrackbarWindow(Recognition& recognition) {
 	hsvTrackbars.addTrackbar("UG_V", 0, 255, recognition.upperGreen[2]);
 
 	hsvTrackbars.addTrackbar("KERNEL_ITER", 1, 10, recognition.kernelIterations);
+	hsvTrackbars.addTrackbar("EPSILON_RATE", 0, 100, recognition.tableEpsilonRate);
 
 	return hsvTrackbars;
 }

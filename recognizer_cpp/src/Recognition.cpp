@@ -45,19 +45,7 @@ Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fde
 }
 
 std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& contour) {
-    cv::RotatedRect rect = cv::minAreaRect(contour);
-    
-    cv::Point2f points[4];
-    rect.points(points);
-
-    std::vector<cv::Point> pointsVec;
-    for (int i = 0; i < 4; i++) {
-        pointsVec.push_back(points[i]);
-    }
-
-    return pointsVec;
-
-    /* std::vector<Section> lengths;
+    std::vector<Section> lengths;
 
     for (int i = 0; i < contour.size(); i++) {
         cv::Point start, end;
@@ -71,7 +59,25 @@ std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& 
 
     std::sort(lengths.begin(), lengths.end(), sectionComparator);
     lengths = std::vector<Section>(lengths.begin(), lengths.begin() + 4);
-    Section temp = lengths[1];
+
+    std::vector<cv::Point> lengthPoints;
+    for (const auto& length : lengths) {
+        lengthPoints.push_back(length.start);
+        lengthPoints.push_back(length.end);
+    }
+    cv::RotatedRect rect = cv::minAreaRect(lengthPoints);
+    
+    cv::Point2f points[4];
+    rect.points(points);
+
+    std::vector<cv::Point> pointsVec;
+    for (int i = 0; i < 4; i++) {
+        pointsVec.push_back(points[i]);
+    }
+
+    return pointsVec;
+
+    /* Section temp = lengths[1];
     lengths[1] = lengths[2];
     lengths[2] = temp;
 
@@ -163,7 +169,10 @@ void Recognition::findTable(const cv::Mat& image) {
         quad.clear();
     }
     else {
+        double epsilon = cv::arcLength(contours[0], true) * (tableEpsilonRate / 1000);
+        cv::approxPolyDP(contours[0], contours[0], epsilon, true);
         cv::drawContours(debugFrameMask, contours, 0, cv::Scalar(0, 128, 255), 2);
+
         quad = contourToQuad(contours[0]);
     }
 }

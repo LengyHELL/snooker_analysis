@@ -67,6 +67,7 @@ public:
 	cv::Scalar lowerGreen = cv::Scalar(50, 0, 111);		// 40, 190, 50
     cv::Scalar upperGreen = cv::Scalar(65, 255, 255);	// 65, 255, 255
 	double kernelIterations = 1;
+	double tableEpsilonRate = 5;
 
 	cv::Mat debugFrameCircles;
 	int minRadiusRate = 7;		// 6
