@@ -1,4 +1,5 @@
 #include "headers/Recognition.hpp"
+#include "headers/TrackbarWindow.hpp"
 
 void drawFrameTime(cv::Mat image, const int& frameTime) {
 	cv::putText(image, "Frametime:" + std::to_string(frameTime) + " ms", cv::Point(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
@@ -34,25 +35,31 @@ void createTrackbars(cv::Scalar lower, cv::Scalar upper, int kernelIterations) {
 	cv::setTrackbarMin("KERNEL_ITER", "trackbars", 1);
 }
 
-cv::Scalar getHSVTrackbar(bool lower) {
-	if (lower) {
-		return cv::Scalar(
-			cv::getTrackbarPos("LG_H", "trackbars"),
-			cv::getTrackbarPos("LG_S", "trackbars"),
-			cv::getTrackbarPos("LG_V", "trackbars")
-		);
-	}
-	else {
-		return cv::Scalar(
-			cv::getTrackbarPos("UG_H", "trackbars"),
-			cv::getTrackbarPos("UG_S", "trackbars"),
-			cv::getTrackbarPos("UG_V", "trackbars")
-		);
-	}
+TrackbarWindow<double> getHSVTrackbarWindow(Recognition& recognition) {
+	TrackbarWindow<double> hsvTrackbars("hsv_trackbars");
+
+	hsvTrackbars.addTrackbar("LG_H", 0, 255, recognition.lowerGreen[0]);
+	hsvTrackbars.addTrackbar("LG_S", 0, 255, recognition.lowerGreen[1]);
+	hsvTrackbars.addTrackbar("LG_V", 0, 255, recognition.lowerGreen[2]);
+
+	hsvTrackbars.addTrackbar("UG_H", 0, 255, recognition.upperGreen[0]);
+	hsvTrackbars.addTrackbar("UG_S", 0, 255, recognition.upperGreen[1]);
+	hsvTrackbars.addTrackbar("UG_V", 0, 255, recognition.upperGreen[2]);
+
+	hsvTrackbars.addTrackbar("KERNEL_ITER", 1, 10, recognition.kernelIterations);
+
+	return hsvTrackbars;
 }
 
-int getIteratorTrackbar() {
-	return cv::getTrackbarPos("KERNEL_ITER", "trackbars");
+TrackbarWindow<int> getCircleTrackbarWindow(Recognition& recognition) {
+	TrackbarWindow<int> circleTrackbars("circle_trackbars");
+
+	circleTrackbars.addTrackbar("MIN_RAD_RATE", 0, 20, recognition.minRadiusRate);
+	circleTrackbars.addTrackbar("MAX_RAD_RATE", 2, 20, recognition.maxRadiusRate);
+	circleTrackbars.addTrackbar("MIN_DIST_RATE", 2, 20, recognition.minDistanceRate);
+	circleTrackbars.addTrackbar("PERFECTNESS", 1, 100, recognition.circlePerfectness);
+
+	return circleTrackbars;
 }
 
 int main(int argc, char** argv) {
@@ -67,12 +74,8 @@ int main(int argc, char** argv) {
 	std::chrono::milliseconds duration;
 
 	Recognition recognition;
-
-	cv::namedWindow("trackbars");
-	createTrackbars(recognition.lowerGreen, recognition.upperGreen, recognition.kernelIterations);
-
-	cv::Mat blank = cv::Mat::zeros(cv::Size(300, 1),CV_8UC1);
-	cv::imshow("trackbars", blank);
+	TrackbarWindow<double> hsvTrackbars = getHSVTrackbarWindow(recognition);
+	TrackbarWindow<int> circleTrackbars = getCircleTrackbarWindow(recognition);
 
 	int currentFrame = 0;
 	const int maxFrames = 3;
@@ -81,9 +84,8 @@ int main(int argc, char** argv) {
 	while(videoCapture.read(videoFrame)) {
 		auto timerStart = std::chrono::high_resolution_clock::now();
 
-		recognition.lowerGreen = getHSVTrackbar(true);
-		recognition.upperGreen = getHSVTrackbar(false);
-		recognition.kernelIterations = getIteratorTrackbar();
+		hsvTrackbars.updateTrackbars();
+		circleTrackbars.updateTrackbars();
 
 		recognition.processFrameWithNN(videoFrame);
 		cv::Mat processedImage;
