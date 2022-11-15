@@ -37,7 +37,10 @@ public:
 
     void updateTrackbars() {
         for (auto& trackbar : trackbars) {
-            *trackbar.value = cv::getTrackbarPos(trackbar.name, windowName);
+            int currentValue = cv::getTrackbarPos(trackbar.name, windowName);
+            if (currentValue >= 0) {
+                *trackbar.value = currentValue;
+            }
         }
     }
 };
