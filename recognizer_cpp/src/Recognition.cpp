@@ -45,7 +45,19 @@ Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fde
 }
 
 std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& contour) {
-    std::vector<Section> lengths;
+    cv::RotatedRect rect = cv::minAreaRect(contour);
+    
+    cv::Point2f points[4];
+    rect.points(points);
+
+    std::vector<cv::Point> pointsVec;
+    for (int i = 0; i < 4; i++) {
+        pointsVec.push_back(points[i]);
+    }
+
+    return pointsVec;
+
+    /* std::vector<Section> lengths;
 
     for (int i = 0; i < contour.size(); i++) {
         cv::Point start, end;
@@ -84,7 +96,7 @@ std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& 
         quadPoints.push_back(intersectionPoint);
     }
 
-    return quadPoints;
+    return quadPoints; */
 }
 
 bool Recognition::getRedBall(const int& id, Ball*& redBall) {
@@ -151,6 +163,7 @@ void Recognition::findTable(const cv::Mat& image) {
         quad.clear();
     }
     else {
+        cv::drawContours(debugFrameMask, contours, 0, cv::Scalar(0, 128, 255), 2);
         quad = contourToQuad(contours[0]);
     }
 }
