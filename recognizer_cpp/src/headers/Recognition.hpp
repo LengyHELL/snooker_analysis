@@ -41,6 +41,8 @@ class Recognition {
     const int height;
     const int circleRadius;
 
+	int iterator = 0;
+
 	std::vector<Ball> previousBalls;
 	std::vector<Ball> balls;
     std::vector<cv::Point> quad;
@@ -64,16 +66,17 @@ public:
 	cv::Mat debugFrameCanny;
 
 	cv::Mat debugFrameMask;
-	cv::Scalar lowerGreen = cv::Scalar(50, 0, 111);		// 40, 190, 50
+	cv::Scalar lowerGreen = cv::Scalar(50, 50, 70);		// 40, 190, 50 -- 50, 0, 111
     cv::Scalar upperGreen = cv::Scalar(65, 255, 255);	// 65, 255, 255
 	double kernelIterations = 1;
 	double tableEpsilonRate = 5;
 
 	cv::Mat debugFrameCircles;
-	int minRadiusRate = 7;		// 6
-	int maxRadiusRate = 14;		// 12
+	int minRadiusRate = 5;		// 6
+	int maxRadiusRate = 12;		// 12
 	int minDistanceRate = 12;	// 16
 	int circlePerfectness = 10;	// 15
+	int thresholdRate = 80;		// 80
 
 	cv::Mat processedFramePath;
 

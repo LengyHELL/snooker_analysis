@@ -35,6 +35,7 @@ TrackbarWindow<int> getCircleTrackbarWindow(Recognition& recognition) {
 	circleTrackbars.addTrackbar("MAX_RAD_RATE", 2, 20, recognition.maxRadiusRate);
 	circleTrackbars.addTrackbar("MIN_DIST_RATE", 2, 20, recognition.minDistanceRate);
 	circleTrackbars.addTrackbar("PERFECTNESS", 1, 100, recognition.circlePerfectness);
+	circleTrackbars.addTrackbar("THRESHOLD_RATE", 1, 100, recognition.thresholdRate);
 
 	return circleTrackbars;
 }
@@ -58,7 +59,14 @@ int main(int argc, char** argv) {
 	const int maxFrames = 3;
 	bool keyLock = false;
 
+	int frameCounter = -1;
+
 	while(videoCapture.read(videoFrame)) {
+		/* frameCounter++;
+		if ((frameCounter % 20) != 0) {
+			continue;
+		} */
+
 		auto timerStart = std::chrono::high_resolution_clock::now();
 
 		hsvTrackbars.updateTrackbars();

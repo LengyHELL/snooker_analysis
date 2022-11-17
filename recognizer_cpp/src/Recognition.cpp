@@ -21,7 +21,7 @@ bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
     return lhs.distance < rhs.distance;
 }
 
-Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fdeep::load_model("./recognizer_cpp/nn_models/classifier_combined3.json")) {
+Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fdeep::load_model("./recognizer_cpp/nn_models/classifier_cam.json")) {
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/black_ball_hd.png"), BallLabel::BLACK));
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/blue_ball_hd.png"), BallLabel::BLUE));
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/brown_ball_hd.png"), BallLabel::BROWN));
@@ -208,7 +208,7 @@ bool Recognition::cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage) {
 }
 
 void Recognition::findBalls(const cv::Mat& image) {
-    cv::Mat hsv, mask, result, imageGray, imageThreshold, imageHough;
+    cv::Mat hsv, mask, result, imageGray, imageThreshold, imageHough;//, imageCanny;
 
     cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
 
@@ -218,10 +218,32 @@ void Recognition::findBalls(const cv::Mat& image) {
     cv::bitwise_and(image, image, result, mask);
     cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
 
-    debugFrameCircles = result;
-
     float threshold = cv::threshold(imageGray, imageThreshold, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-    threshold *= 0.8;
+    threshold *= (double(thresholdRate) / 100);
+
+    /*cv::Canny(imageGray, imageCanny, threshold, threshold / 2);
+    cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size( 3, 3 ));
+    cv::dilate(imageCanny, imageCanny, element, cv::Point(-1, -1), kernelIterations);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(imageCanny, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+    std::sort(contours.begin(), contours.end(), areaComparator);
+
+    std::vector<std::vector<cv::Point>> sorted;
+    for (auto& contour : contours) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(contour, hull);
+        int expectedArea = circleRadius * circleRadius * 3.14;
+
+        int diff = abs(cv::contourArea(hull) - expectedArea);
+
+        if (diff <= circlePerfectness) {
+            sorted.push_back(hull);
+        }
+
+    }
+
+    cv::drawContours(result, sorted, -1, cv::Scalar(255, 255, 0), 2);*/
 
     if (threshold <= 0) {
         return;
@@ -236,10 +258,21 @@ void Recognition::findBalls(const cv::Mat& image) {
 
     balls.clear();
     for (auto& vec : vecs) {
-        cv::circle(result, cv::Point(vec[0], vec[1]), vec[2], cv::Scalar(255, 128, 0));
-        vec[2] = circleRadius;
-        balls.push_back(vec);
+
+        int borderSize = 2 * circleRadius;
+        if (
+            (vec[0] > borderSize) &&
+            (vec[0] < image.cols - borderSize) &&
+            (vec[1] > borderSize) &&
+            (vec[1] < image.rows - borderSize)
+        ) {
+            vec[2] = circleRadius;
+            balls.push_back(vec);
+            cv::circle(result, cv::Point(vec[0], vec[1]), vec[2], cv::Scalar(255, 0, 255));
+        }
     }
+
+    debugFrameCircles = result;
 }
 
 void Recognition::setBallCuts(const cv::Mat& image) {
@@ -298,7 +331,7 @@ void Recognition::labelBallsWithNN() {
         return;
     }
 
-    for (auto& ball : balls) {
+    for (auto& ball : balls) {        
         std::vector<cv::Mat> channels = std::vector<cv::Mat>{ball.cut.BGR, ball.cut.HSV};
         cv::Mat cutArray;
         cv::merge(channels, cutArray);
@@ -376,6 +409,38 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
 
     findBalls(imageWarped);
     setBallCuts(imageWarped);
+    /* labelBallsWithTM();
+    for (const auto& ball : balls) {
+        switch (ball.label) {
+            case BallLabel::BLACK:
+                cv::imwrite("misc/dataset5/black/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::BLUE:
+                cv::imwrite("misc/dataset5/blue/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::BROWN:
+                cv::imwrite("misc/dataset5/brown/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::GREEN:
+                cv::imwrite("misc/dataset5/green/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::PINK:
+                cv::imwrite("misc/dataset5/pink/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::RED:
+                cv::imwrite("misc/dataset5/red/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::WHITE:
+                cv::imwrite("misc/dataset5/white/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            case BallLabel::YELLOW:
+                cv::imwrite("misc/dataset5/yellow/" + std::to_string(iterator) + ".png", ball.cut.BGR);
+                break;
+            default:
+                break;
+        }
+        iterator++;
+    } */
     labelBallsWithNN();
 
     // max cue ball speed 15 mm/ms
