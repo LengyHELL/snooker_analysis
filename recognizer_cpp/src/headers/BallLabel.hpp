@@ -1,7 +1,6 @@
 #pragma once
 
 enum BallLabel {
-	NONE = -1,
 	BLACK = 0,
 	BLUE = 1,
 	BROWN = 2,
@@ -9,5 +8,6 @@ enum BallLabel {
 	PINK = 4,
 	RED = 5,
 	WHITE = 6,
-	YELLOW = 7
+	YELLOW = 7,
+	NONE = 8
 };
