@@ -1,4 +1,5 @@
 #include <Recognition.hpp>
+#include <filesystem>
 
 void showImageWithContours(cv::Mat image, const std::vector<std::vector<cv::Point>>& contours, int index = -1) {
 	cv::drawContours(image, contours, index, cv::Scalar(255, 0, 0));
@@ -105,7 +106,7 @@ std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& 
     return quadPoints; */
 }
 
-bool Recognition::getRedBall(const int& id, Ball*& redBall) {
+bool Recognition::getRedBall(const int& id, Ball*& redBall, std::vector<Ball>& balls) {
     for (auto& ball : balls) {
         if (ball.label == BallLabel::RED && ball.id == id) {
             redBall = &ball;
@@ -208,53 +209,17 @@ bool Recognition::cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage) {
 }
 
 void Recognition::findBalls(const cv::Mat& image) {
-    cv::Mat hsv, mask, result, imageGray, imageThreshold, imageHough;//, imageCanny;
+    cv::Mat result, imageGray, imageHough;
+    result = image.clone();
 
-    cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
-
-    cv::inRange(hsv, lowerGreen, upperGreen, mask);
-    cv::bitwise_not(mask, mask);
-
-    cv::bitwise_and(image, image, result, mask);
-    cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
-
-    float threshold = cv::threshold(imageGray, imageThreshold, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-    threshold *= (double(thresholdRate) / 100);
-
-    /*cv::Canny(imageGray, imageCanny, threshold, threshold / 2);
-    cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size( 3, 3 ));
-    cv::dilate(imageCanny, imageCanny, element, cv::Point(-1, -1), kernelIterations);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(imageCanny, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
-    std::sort(contours.begin(), contours.end(), areaComparator);
-
-    std::vector<std::vector<cv::Point>> sorted;
-    for (auto& contour : contours) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(contour, hull);
-        int expectedArea = circleRadius * circleRadius * 3.14;
-
-        int diff = abs(cv::contourArea(hull) - expectedArea);
-
-        if (diff <= circlePerfectness) {
-            sorted.push_back(hull);
-        }
-
-    }
-
-    cv::drawContours(result, sorted, -1, cv::Scalar(255, 255, 0), 2);*/
-
-    if (threshold <= 0) {
-        return;
-    }
+    cv::cvtColor(image, imageGray, cv::COLOR_BGR2GRAY);
 
     float minRadius = circleRadius * (float(minRadiusRate) / 10);
     float maxRadius = circleRadius * (float(maxRadiusRate) / 10);
     float minDistance = circleRadius * (float(minDistanceRate) / 10);
 
     std::vector<cv::Vec3f> vecs;
-    cv::HoughCircles(imageGray, vecs, cv::HOUGH_GRADIENT, 1, minDistance, threshold, circlePerfectness, minRadius, maxRadius);
+    cv::HoughCircles(imageGray, vecs, cv::HOUGH_GRADIENT, 1, minDistance, circleThreshold, circlePerfectness, minRadius, maxRadius);
 
     balls.clear();
     for (auto& vec : vecs) {
@@ -443,7 +408,7 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
     } */
     labelBallsWithNN();
 
-    // max cue ball speed 15 mm/ms
+    // max cue ball speed 15 mm/ms -- 500mm at 30fps, 250mm at 60fps
     std::vector<BallMovement> movements;
 
     for (auto& ball : balls) {
@@ -451,6 +416,13 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
             if (ball.label == BallLabel::RED && previousBall.label == BallLabel::RED) {
                 float d = cv::norm(ball.getCenter() - previousBall.getCenter());
                 movements.push_back(BallMovement(d, &ball.id, &previousBall.id));
+            }
+            else if (ball.label == previousBall.label) {
+                // checking for jump spikes in non red balls
+                if (cv::norm(previousBall.getCenter() - ball.getCenter()) > maxBallJump) {
+                    ball.x = previousBall.x;
+                    ball.y = previousBall.y;
+                }
             }
         }
     }
@@ -467,13 +439,24 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
             Ball* withPreviousId;
 
             // switching ids in balls vector
-            if (getRedBall(*movement.currentId, withCurrentId)) {
-                if (getRedBall(*movement.previousId, withPreviousId)) {
+            if (getRedBall(*movement.currentId, withCurrentId, balls)) {
+                if (getRedBall(*movement.previousId, withPreviousId, balls)) {
                     withPreviousId->id = *movement.currentId;
                 }
 
                 withCurrentId->id = *movement.previousId;
+
+                // checking for jump spikes in red balls
+                Ball* previousBall;
+
+                if (((movement.distance) > maxBallJump) &&
+                    getRedBall(*movement.currentId, previousBall, previousBalls)) {
+
+                    withCurrentId->x = previousBall->x;
+                    withCurrentId->y = previousBall->y;
+                }
             }
+
 
             // switching ids in movements vector
             for (int i = 0; i < movements.size(); i++) {
@@ -513,5 +496,92 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
 }
 
 std::vector<cv::Point> Recognition::getBallPath(const BallLabel& label, const int& id) const {
-    return ballPaths.at({id, label});
+    if (ballPaths.count({id, label})) {
+        return ballPaths.at({id, label});
+    }
+    else {
+        return std::vector<cv::Point>();
+    }
+}
+
+void Recognition::loadVariables(const std::string& fileName) {
+    std::ifstream loadFile(fileName);
+
+    if (loadFile.is_open()) {
+        std::string line = "";
+
+        while(getline(loadFile, line)) {
+            if (line.length() > 0) {
+                int separatorPos = line.find('=');
+                std::string key = line.substr(0, separatorPos);
+                std::string value = line.substr(separatorPos + 1);
+
+                if (key == "lower_green_h") {
+                    lowerGreen[0] = std::stod(value);
+                }
+                else if (key == "lower_green_s") {
+                    lowerGreen[1] = std::stod(value);
+                }
+                else if (key == "lower_green_v") {
+                    lowerGreen[2] = std::stod(value);
+                }
+                else if (key == "upper_green_h") {
+                    upperGreen[0] = std::stod(value);
+                }
+                else if (key == "upper_green_s") {
+                    upperGreen[1] = std::stod(value);
+                }
+                else if (key == "upper_green_v") {
+                    upperGreen[2] = std::stod(value);
+                }
+                else if (key == "kernel_iterations") {
+                    kernelIterations = std::stod(value);
+                }
+                else if (key == "table_epsilon_rate") {
+                    tableEpsilonRate = std::stod(value);
+                }
+                else if (key == "min_radius_rate") {
+                    minRadiusRate = std::stoi(value);
+                }
+                else if (key == "max_radius_rate") {
+                    maxRadiusRate = std::stoi(value);
+                }
+                else if (key == "min_distance_rate") {
+                    minDistanceRate = std::stoi(value);
+                }
+                else if (key == "circle_perfectness") {
+                    circlePerfectness = std::stoi(value);
+                }
+                else if (key == "circle_threshold") {
+                    circleThreshold = std::stoi(value);
+                }
+                else if (key == "max_ball_jump") {
+                    maxBallJump = std::stoi(value);
+                }
+            }
+        }
+
+        loadFile.close();
+    }
+}
+
+void Recognition::saveVariables(const std::string& fileName) {
+    std::ofstream saveFile(fileName);
+
+    saveFile << "lower_green_h=" << lowerGreen[0] << '\n';
+    saveFile << "lower_green_s=" << lowerGreen[1] << '\n';
+    saveFile << "lower_green_v=" << lowerGreen[2] << '\n';
+    saveFile << "upper_green_h=" << upperGreen[0] << '\n';
+    saveFile << "upper_green_s=" << upperGreen[1] << '\n';
+    saveFile << "upper_green_v=" << upperGreen[2] << '\n';
+    saveFile << "kernel_iterations=" << kernelIterations << '\n';
+    saveFile << "table_epsilon_rate=" << tableEpsilonRate << '\n';
+    saveFile << "min_radius_rate=" << minRadiusRate << '\n';
+    saveFile << "max_radius_rate=" << maxRadiusRate << '\n';
+    saveFile << "min_distance_rate=" << minDistanceRate << '\n';
+    saveFile << "circle_perfectness=" << circlePerfectness << '\n';
+    saveFile << "circle_threshold=" << circleThreshold << '\n';
+    saveFile << "max_ball_jump=" << maxBallJump << '\n';
+
+    saveFile.close();
 }

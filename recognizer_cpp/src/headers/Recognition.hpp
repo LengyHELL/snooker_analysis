@@ -53,14 +53,13 @@ class Recognition {
 
 	static std::vector<cv::Point> contourToQuad(const std::vector<cv::Point>& contour);
 
-	bool getRedBall(const int& id, Ball*& redBall);
+	bool getRedBall(const int& id, Ball*& redBall, std::vector<Ball>& balls);
 	void findTable(const cv::Mat& image);
 	bool cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage);
 	void findBalls(const cv::Mat& image);
 	void setBallCuts(const cv::Mat& image);
 	void labelBallsWithTM();
 	void labelBallsWithNN();
-
 
 public:
 	cv::Mat debugFrameCanny;
@@ -76,7 +75,8 @@ public:
 	int maxRadiusRate = 12;		// 12
 	int minDistanceRate = 12;	// 16
 	int circlePerfectness = 10;	// 15
-	int thresholdRate = 80;		// 80
+	int circleThreshold = 200;	// 80
+	int maxBallJump = 140;		// 140
 
 	cv::Mat processedFramePath;
 
@@ -84,4 +84,7 @@ public:
 
 	void processFrameWithNN(const cv::Mat& videoFrame);
 	std::vector<cv::Point> getBallPath(const BallLabel& label, const int& id = 0) const;
+
+	void saveVariables(const std::string& fileName);
+	void loadVariables(const std::string& fileName);
 };

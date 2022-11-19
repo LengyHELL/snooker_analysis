@@ -1,0 +1,14 @@
+lower_green_h=50
+lower_green_s=50
+lower_green_v=70
+upper_green_h=65
+upper_green_s=255
+upper_green_v=255
+kernel_iterations=1
+table_epsilon_rate=5
+min_radius_rate=5
+max_radius_rate=12
+min_distance_rate=12
+circle_perfectness=10
+circle_threshold=40
+max_ball_jump=70

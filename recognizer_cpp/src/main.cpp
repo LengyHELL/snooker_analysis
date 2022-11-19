@@ -5,6 +5,10 @@ void drawFrameTime(cv::Mat image, const int& frameTime) {
 	cv::putText(image, "Frametime:" + std::to_string(frameTime) + " ms", cv::Point(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
 }
 
+void drawCurrentFrame(cv::Mat image, const int& currentFrame) {
+	cv::putText(image, "Current frame:" + std::to_string(currentFrame), cv::Point(190, 15), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
+}
+
 void drawPath(cv::Mat& image, const std::vector<cv::Point>& path, const cv::Scalar& color = cv::Scalar(255, 0, 0)) {
 	for (int i = 1; i < path.size(); i++) {
 		cv::line(image, path[i - 1], path[i], color);
@@ -35,42 +39,67 @@ TrackbarWindow<int> getCircleTrackbarWindow(Recognition& recognition) {
 	circleTrackbars.addTrackbar("MAX_RAD_RATE", 2, 20, recognition.maxRadiusRate);
 	circleTrackbars.addTrackbar("MIN_DIST_RATE", 2, 20, recognition.minDistanceRate);
 	circleTrackbars.addTrackbar("PERFECTNESS", 1, 100, recognition.circlePerfectness);
-	circleTrackbars.addTrackbar("THRESHOLD_RATE", 1, 100, recognition.thresholdRate);
+	circleTrackbars.addTrackbar("THRESHOLD_RATE", 2, 255, recognition.circleThreshold);
+	circleTrackbars.addTrackbar("MAX_BALL_JUMP", 20, 1000, recognition.maxBallJump);
 
 	return circleTrackbars;
 }
 
 int main(int argc, char** argv) {
-	if (argc != 2) {
-		printf("usage: DisplayImage.out <Image_Path>\n");
+	if (argc == 1) {
+		printf("usage: snooker_analysis <video_path> <start_frame(optional)> <end_frame(optional)>\n");
 		return -1;
 	}
+
+	// 0 - 300
+	// 2100 - 2220
 	
+	int startFrame = 0;
+	int endFrame = -1;
+
+	if (argc >= 3) { startFrame = std::stoi(argv[2]); }
+	if (argc >= 4) { endFrame = std::stoi(argv[3]); }
+
 	cv::VideoCapture videoCapture(argv[1]);
+	videoCapture.set(cv::CAP_PROP_POS_FRAMES, startFrame);
 	cv::Mat videoFrame;
 
 	std::chrono::milliseconds duration;
 
 	Recognition recognition;
+	recognition.loadVariables("recognizer_cpp/config.txt");
 	TrackbarWindow<double> hsvTrackbars = getHSVTrackbarWindow(recognition);
 	TrackbarWindow<int> circleTrackbars = getCircleTrackbarWindow(recognition);
+	TrackbarWindow<int> mainTrackbars("main_trackbars");
+
+	int shownBallColor = 5;
+	int shownBallId = 0;
+	mainTrackbars.addTrackbar("SHOWN_BALL_COLOR", 0, 7, shownBallColor);
+	mainTrackbars.addTrackbar("SHOWN_BALL_ID", 0, 14, shownBallId);
 
 	int currentFrame = 0;
 	const int maxFrames = 3;
 	bool keyLock = false;
 
-	int frameCounter = -1;
+	int framePosition = 0;
 
-	while(videoCapture.read(videoFrame)) {
-		/* frameCounter++;
-		if ((frameCounter % 20) != 0) {
-			continue;
-		} */
+	bool stop = false;
+	bool pause = false;
 
+	while(!stop) {
+		if (!pause) {
+			if (!videoCapture.read(videoFrame)) {
+				stop = true;
+				continue;
+			}
+		}
 		auto timerStart = std::chrono::high_resolution_clock::now();
+
+		framePosition = videoCapture.get(cv::CAP_PROP_POS_FRAMES);
 
 		hsvTrackbars.updateTrackbars();
 		circleTrackbars.updateTrackbars();
+		mainTrackbars.updateTrackbars();
 
 		recognition.processFrameWithNN(videoFrame);
 		cv::Mat processedImage;
@@ -78,7 +107,7 @@ int main(int argc, char** argv) {
 		switch(currentFrame) {
 			case 0: default:
 				processedImage = recognition.processedFramePath;
-				drawPath(processedImage, recognition.getBallPath(BallLabel::RED, 10));
+				drawPath(processedImage, recognition.getBallPath(static_cast<BallLabel>(shownBallColor), shownBallId));
 				break;
 			case 1: processedImage = recognition.debugFrameCanny; break;
 			case 2: processedImage = recognition.debugFrameMask; break;
@@ -86,14 +115,19 @@ int main(int argc, char** argv) {
 		}
 
 		drawFrameTime(processedImage, duration.count());
+		drawCurrentFrame(processedImage, framePosition);
 
 		cv::Mat resizedImage;
 		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
 		cv::imshow("snooker recognition", resizedImage);
 
 		char key = cv::waitKey(1);
-		if (key == 'q') {
+		if (key == 'q' || key == 's' || ((framePosition > endFrame) && (endFrame > 0))) {
 			cv::destroyAllWindows();
+
+			if (key == 's') {
+				recognition.saveVariables("recognizer_cpp/config.txt");
+			}
 			break;
 		}
 		else if (key == 'a') {
@@ -107,6 +141,9 @@ int main(int argc, char** argv) {
 			if (currentFrame > maxFrames) {
 				currentFrame = maxFrames;
 			}
+		}
+		else if (int(key) == 32) {
+			pause = !pause;
 		}
 
 		auto timerStop = std::chrono::high_resolution_clock::now();
