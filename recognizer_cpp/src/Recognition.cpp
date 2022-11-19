@@ -291,6 +291,7 @@ void Recognition::labelBallsWithTM() {
 void Recognition::labelBallsWithNN() {
     fdeep::internal::tensors_vec inputs;
     float matchLimit = 0.2;
+    float noneLimit = 1.0;
 
     if (balls.empty()) {
         return;
@@ -346,7 +347,7 @@ void Recognition::labelBallsWithNN() {
             }
             
             int maxIndex = std::max_element(results.begin(), results.end(), comparator) - results.begin();
-            if (results[maxIndex][type] > matchLimit) {
+            if ((results[maxIndex][type] > matchLimit) && (results[maxIndex][BallLabel::NONE] < noneLimit)) {
                 balls[maxIndex].label = static_cast<BallLabel>(type);
             }
         }
