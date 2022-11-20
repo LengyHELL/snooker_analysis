@@ -224,7 +224,7 @@ void Recognition::findBalls(const cv::Mat& image) {
     balls.clear();
     for (auto& vec : vecs) {
 
-        int borderSize = 1 * circleRadius;
+        int borderSize = 1.5 * circleRadius;
         if (
             (vec[0] > borderSize) &&
             (vec[0] < image.cols - borderSize) &&
@@ -360,6 +360,10 @@ void Recognition::labelBallsWithNN() {
             balls[i].id = currentId;
             currentId++;
         }
+        // else if ((results[i][BallLabel::NONE] < 0.4) && (balls[i].label == BallLabel::NONE)) {
+        //     cv::imwrite("misc/uncategorized/uc_" + std::to_string(iterator) + ".png" ,balls[i].cut.BGR);
+        //     iterator++;
+        // }
     }
 }
 

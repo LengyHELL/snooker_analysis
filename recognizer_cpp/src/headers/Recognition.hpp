@@ -82,7 +82,7 @@ class Recognition {
 	std::map<BallIndex, BallData> ballData;
 	
     std::vector<Template> templates;
-    fdeep::model model = fdeep::load_model("./recognizer_cpp/nn_models/classifier_with_none.json");
+    fdeep::model model = fdeep::load_model("./recognizer_cpp/nn_models/classifier_v1.json");
 
 	static std::vector<cv::Point> contourToQuad(const std::vector<cv::Point>& contour);
 

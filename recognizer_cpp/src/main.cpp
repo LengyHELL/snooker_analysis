@@ -54,7 +54,7 @@ TrackbarWindow<int> getNNTrackbarWindow(Recognition& recognition) {
 	TrackbarWindow<int> nnTrackbars("nn_trackbars");
 
 	nnTrackbars.addTrackbar("MATCH_LIMIT_RATE", 20, 100, recognition.matchLimitRate);
-	nnTrackbars.addTrackbar("NONE_LIMIT_RATE", 20, 100, recognition.noneLimitRate);
+	nnTrackbars.addTrackbar("NONE_LIMIT_RATE", 5, 100, recognition.noneLimitRate);
 
 	return nnTrackbars;
 }
