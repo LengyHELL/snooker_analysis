@@ -41,9 +41,9 @@ struct BallMovement {
 };
 
 class Recognition {
-    const int width;
-    const int height;
-    const int circleRadius;
+    const int width = 1024;
+    const int height = 512;
+    const int circleRadius = 9;
 
 	int iterator = 0;
 
@@ -54,7 +54,7 @@ class Recognition {
 	std::map<BallIndex, BallData> ballData;
 	
     std::vector<Template> templates;
-    fdeep::model model;
+    fdeep::model model = fdeep::load_model("./recognizer_cpp/nn_models/classifier_with_none.json");
 
 	static std::vector<cv::Point> contourToQuad(const std::vector<cv::Point>& contour);
 
@@ -67,6 +67,8 @@ class Recognition {
 	void labelBallsWithNN();
 
 public:
+	int processedFramePosition = 0;
+
 	cv::Mat debugFrameCanny;
 
 	cv::Mat debugFrameMask;

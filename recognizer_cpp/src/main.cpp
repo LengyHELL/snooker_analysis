@@ -95,8 +95,6 @@ int main(int argc, char** argv) {
 	const int maxFrames = 3;
 	bool keyLock = false;
 
-	int framePosition = 0;
-
 	bool stop = false;
 	bool pause = false;
 
@@ -108,8 +106,6 @@ int main(int argc, char** argv) {
 			}
 		}
 		auto timerStart = std::chrono::high_resolution_clock::now();
-
-		framePosition = videoCapture.get(cv::CAP_PROP_POS_FRAMES);
 
 		hsvTrackbars.updateTrackbars();
 		circleTrackbars.updateTrackbars();
@@ -130,14 +126,14 @@ int main(int argc, char** argv) {
 		}
 
 		drawFrameTime(processedImage, duration.count());
-		drawCurrentFrame(processedImage, framePosition);
+		drawCurrentFrame(processedImage, recognition.processedFramePosition);
 
 		cv::Mat resizedImage;
 		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
 		cv::imshow("snooker recognition", resizedImage);
 
 		char key = cv::waitKey(1);
-		if (key == 'q' || key == 's' || ((framePosition > endFrame) && (endFrame > 0))) {
+		if (key == 'q' || key == 's' || ((recognition.processedFramePosition > endFrame) && (endFrame > 0))) {
 			cv::destroyAllWindows();
 
 			if (key == 's') {

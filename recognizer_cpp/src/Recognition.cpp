@@ -22,7 +22,7 @@ bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
     return lhs.distance < rhs.distance;
 }
 
-Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fdeep::load_model("./recognizer_cpp/nn_models/classifier_with_none.json")) {
+Recognition::Recognition() {
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/black_ball_hd.png"), BallLabel::BLACK));
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/blue_ball_hd.png"), BallLabel::BLUE));
     templates.push_back(Template(loadImage("./recognizer_cpp/templates/brown_ball_hd.png"), BallLabel::BROWN));
@@ -494,6 +494,8 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
     }
 
     processedFramePath = imageWarped;
+
+    processedFramePosition++;
 }
 
 std::vector<cv::Point> Recognition::getBallPath(const BallLabel& label, const int& id) const {
