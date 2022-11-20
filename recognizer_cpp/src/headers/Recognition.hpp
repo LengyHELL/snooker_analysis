@@ -28,8 +28,34 @@ struct BallIndex {
 	}
 };
 
-struct BallData {
+class BallData {
+private:
+	int previousUpdateFrame = 0;
+
+public:
 	std::vector<cv::Point> path = std::vector<cv::Point>();
+	std::vector<float> speed = std::vector<float>();
+	float totalDistance = 0;
+
+	void addPosition(const cv::Point& newPosition, const int& framePosition) {
+		if (path.empty()) {
+			speed.push_back(0);
+            path.push_back(newPosition);
+        }
+		else {
+			if (framePosition <= previousUpdateFrame) {
+				return;
+			}
+			float distance = cv::norm(newPosition - path.back());
+			float time = framePosition - previousUpdateFrame;
+
+			totalDistance += distance;
+			speed.push_back(distance / time);
+			path.push_back(newPosition);
+		}
+		
+		previousUpdateFrame = framePosition;
+	}
 };
 
 struct BallMovement {
@@ -41,9 +67,11 @@ struct BallMovement {
 };
 
 class Recognition {
+	const int trueWidth = 3658; // mm
     const int width = 1024;
     const int height = 512;
     const int circleRadius = 9;
+	const int frameRate = 30; // fps
 
 	int iterator = 0;
 
@@ -92,5 +120,5 @@ public:
     Recognition();
 
 	void processFrameWithNN(const cv::Mat& videoFrame);
-	std::vector<cv::Point> getBallPath(const BallLabel& label, const int& id = 0) const;
+	BallData getBallData(const BallLabel& label, const int& id = 0) const;
 };

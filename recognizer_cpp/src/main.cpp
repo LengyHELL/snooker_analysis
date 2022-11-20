@@ -9,9 +9,14 @@ void drawCurrentFrame(cv::Mat image, const int& currentFrame) {
 	cv::putText(image, "Current frame:" + std::to_string(currentFrame), cv::Point(190, 15), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
 }
 
-void drawPath(cv::Mat& image, const std::vector<cv::Point>& path, const cv::Scalar& color = cv::Scalar(255, 0, 0)) {
-	for (int i = 1; i < path.size(); i++) {
-		cv::line(image, path[i - 1], path[i], color);
+void drawBallData(cv::Mat& image, const BallData& ballData, const cv::Scalar& pathColor = cv::Scalar(255, 0, 0)) {
+	for (int i = 1; i < ballData.path.size(); i++) {
+		cv::line(image, ballData.path[i - 1], ballData.path[i], pathColor);
+	}
+
+	cv::putText(image, "Distance:" + std::to_string(ballData.totalDistance), cv::Point(0, 35), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
+	if (!ballData.speed.empty()) {
+		cv::putText(image, "Speed:" + std::to_string(ballData.speed.back()), cv::Point(0, 55), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
 	}
 }
 
@@ -86,10 +91,10 @@ int main(int argc, char** argv) {
 	mainTrackbars.addTrackbar("SHOWN_BALL_COLOR", 0, 7, shownBallColor);
 	mainTrackbars.addTrackbar("SHOWN_BALL_ID", 0, 14, shownBallId);
 
-	hsvTrackbars.loadTrackbars("recognition_cpp/config.txt");
-	circleTrackbars.loadTrackbars("recognition_cpp/config.txt");
-	mainTrackbars.loadTrackbars("recognition_cpp/config.txt");
-	nnTrackbars.loadTrackbars("recognition_cpp/config.txt");
+	hsvTrackbars.loadTrackbars("recognizer_cpp/config.txt");
+	circleTrackbars.loadTrackbars("recognizer_cpp/config.txt");
+	mainTrackbars.loadTrackbars("recognizer_cpp/config.txt");
+	nnTrackbars.loadTrackbars("recognizer_cpp/config.txt");
 
 	int currentFrame = 0;
 	const int maxFrames = 3;
@@ -97,9 +102,10 @@ int main(int argc, char** argv) {
 
 	bool stop = false;
 	bool pause = false;
+	bool nextFrame = false;
 
 	while(!stop) {
-		if (!pause) {
+		if (!pause || nextFrame) {
 			if (!videoCapture.read(videoFrame)) {
 				stop = true;
 				continue;
@@ -112,13 +118,15 @@ int main(int argc, char** argv) {
 		mainTrackbars.updateTrackbars();
 		nnTrackbars.updateTrackbars();
 
-		recognition.processFrameWithNN(videoFrame);
+		if (!pause || nextFrame) {
+			recognition.processFrameWithNN(videoFrame);
+		}
 		cv::Mat processedImage;
 
 		switch(currentFrame) {
 			case 0: default:
-				processedImage = recognition.processedFramePath;
-				drawPath(processedImage, recognition.getBallPath(static_cast<BallLabel>(shownBallColor), shownBallId));
+				processedImage = recognition.processedFramePath.clone();
+				drawBallData(processedImage, recognition.getBallData(static_cast<BallLabel>(shownBallColor), shownBallId));
 				break;
 			case 1: processedImage = recognition.debugFrameCanny; break;
 			case 2: processedImage = recognition.debugFrameMask; break;
@@ -131,6 +139,10 @@ int main(int argc, char** argv) {
 		cv::Mat resizedImage;
 		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
 		cv::imshow("snooker recognition", resizedImage);
+
+		if (nextFrame) {
+			nextFrame = false;
+		}
 
 		char key = cv::waitKey(1);
 		if (key == 'q' || key == 's' || ((recognition.processedFramePosition > endFrame) && (endFrame > 0))) {
@@ -160,7 +172,11 @@ int main(int argc, char** argv) {
 		else if (int(key) == 32) {
 			pause = !pause;
 		}
+		else if ((key == 'w') && pause) {
+			nextFrame = true;
+		}
 
+		recognition.processedFramePosition = videoCapture.get(cv::CAP_PROP_POS_FRAMES);
 		auto timerStop = std::chrono::high_resolution_clock::now();
 		duration = std::chrono::duration_cast<std::chrono::milliseconds>(timerStop - timerStart);
 	}

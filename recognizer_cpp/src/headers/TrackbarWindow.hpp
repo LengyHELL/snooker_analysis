@@ -87,7 +87,6 @@ public:
 
                     if (findTrackbarByName(key)) {
                         cv::setTrackbarPos(key, windowName, std::stoi(value));
-                        std::cerr << "setting trackbar '" << key << "' to " << std::stoi(value) << '\n';
                     }
                 }
             }

@@ -473,15 +473,8 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
         }
     }
 
-    previousBalls = balls;
-
     for (const auto& ball : balls) {
-        if (ballData[{ball.id, ball.label}].path.empty()) {
-            ballData[{ball.id, ball.label}].path.push_back(ball.getCenter());
-        }
-        else if (*ballData[{ball.id, ball.label}].path.end() != ball.getCenter()) {
-            ballData[{ball.id, ball.label}].path.push_back(ball.getCenter());
-        }
+        ballData[{ball.id, ball.label}].addPosition(ball.getCenter(), processedFramePosition);
     }
 
     for (const auto& ball : balls) {
@@ -493,16 +486,16 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
         cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
     }
 
-    processedFramePath = imageWarped;
+    previousBalls = balls;
 
-    processedFramePosition++;
+    processedFramePath = imageWarped;
 }
 
-std::vector<cv::Point> Recognition::getBallPath(const BallLabel& label, const int& id) const {
+BallData Recognition::getBallData(const BallLabel& label, const int& id) const {
     if (ballData.count({id, label})) {
-        return ballData.at({id, label}).path;
+        return ballData.at({id, label});
     }
     else {
-        return std::vector<cv::Point>();
+        return BallData();
     }
 }
