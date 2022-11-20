@@ -36,11 +36,11 @@ Recognition::Recognition(): width(1024), height(512), circleRadius(9), model(fde
         BallLabel label = static_cast<BallLabel>(i);
         if (label == BallLabel::RED) {
             for (int j = 0; j < 15; j++) {
-                ballPaths.insert(std::pair<BallIndex, std::vector<cv::Point>>(BallIndex(j, label), std::vector<cv::Point>()));
+                ballData.insert(std::pair<BallIndex, BallData>(BallIndex(j, label), BallData()));
             }
         }
         else {
-            ballPaths.insert(std::pair<BallIndex, std::vector<cv::Point>>(BallIndex(0, label), std::vector<cv::Point>()));
+            ballData.insert(std::pair<BallIndex, BallData>(BallIndex(0, label), BallData()));
         }
     }
 }
@@ -224,7 +224,7 @@ void Recognition::findBalls(const cv::Mat& image) {
     balls.clear();
     for (auto& vec : vecs) {
 
-        int borderSize = 2 * circleRadius;
+        int borderSize = 1 * circleRadius;
         if (
             (vec[0] > borderSize) &&
             (vec[0] < image.cols - borderSize) &&
@@ -290,14 +290,14 @@ void Recognition::labelBallsWithTM() {
 
 void Recognition::labelBallsWithNN() {
     fdeep::internal::tensors_vec inputs;
-    float matchLimit = 0.2;
-    float noneLimit = 1.0;
+    float matchLimit = float(matchLimitRate) / 100;
+    float noneLimit = float(noneLimitRate) / 100;
 
     if (balls.empty()) {
         return;
     }
 
-    for (auto& ball : balls) {        
+    for (auto& ball : balls) {
         std::vector<cv::Mat> channels = std::vector<cv::Mat>{ball.cut.BGR, ball.cut.HSV};
         cv::Mat cutArray;
         cv::merge(channels, cutArray);
@@ -476,11 +476,11 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
     previousBalls = balls;
 
     for (const auto& ball : balls) {
-        if (ballPaths[{ball.id, ball.label}].empty()) {
-            ballPaths[{ball.id, ball.label}].push_back(ball.getCenter());
+        if (ballData[{ball.id, ball.label}].path.empty()) {
+            ballData[{ball.id, ball.label}].path.push_back(ball.getCenter());
         }
-        else if (*ballPaths[{ball.id, ball.label}].end() != ball.getCenter()) {
-            ballPaths[{ball.id, ball.label}].push_back(ball.getCenter());
+        else if (*ballData[{ball.id, ball.label}].path.end() != ball.getCenter()) {
+            ballData[{ball.id, ball.label}].path.push_back(ball.getCenter());
         }
     }
 
@@ -497,92 +497,10 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
 }
 
 std::vector<cv::Point> Recognition::getBallPath(const BallLabel& label, const int& id) const {
-    if (ballPaths.count({id, label})) {
-        return ballPaths.at({id, label});
+    if (ballData.count({id, label})) {
+        return ballData.at({id, label}).path;
     }
     else {
         return std::vector<cv::Point>();
     }
-}
-
-void Recognition::loadVariables(const std::string& fileName) {
-    std::ifstream loadFile(fileName);
-
-    if (loadFile.is_open()) {
-        std::string line = "";
-
-        while(getline(loadFile, line)) {
-            if (line.length() > 0) {
-                int separatorPos = line.find('=');
-                std::string key = line.substr(0, separatorPos);
-                std::string value = line.substr(separatorPos + 1);
-
-                if (key == "lower_green_h") {
-                    lowerGreen[0] = std::stod(value);
-                }
-                else if (key == "lower_green_s") {
-                    lowerGreen[1] = std::stod(value);
-                }
-                else if (key == "lower_green_v") {
-                    lowerGreen[2] = std::stod(value);
-                }
-                else if (key == "upper_green_h") {
-                    upperGreen[0] = std::stod(value);
-                }
-                else if (key == "upper_green_s") {
-                    upperGreen[1] = std::stod(value);
-                }
-                else if (key == "upper_green_v") {
-                    upperGreen[2] = std::stod(value);
-                }
-                else if (key == "kernel_iterations") {
-                    kernelIterations = std::stod(value);
-                }
-                else if (key == "table_epsilon_rate") {
-                    tableEpsilonRate = std::stod(value);
-                }
-                else if (key == "min_radius_rate") {
-                    minRadiusRate = std::stoi(value);
-                }
-                else if (key == "max_radius_rate") {
-                    maxRadiusRate = std::stoi(value);
-                }
-                else if (key == "min_distance_rate") {
-                    minDistanceRate = std::stoi(value);
-                }
-                else if (key == "circle_perfectness") {
-                    circlePerfectness = std::stoi(value);
-                }
-                else if (key == "circle_threshold") {
-                    circleThreshold = std::stoi(value);
-                }
-                else if (key == "max_ball_jump") {
-                    maxBallJump = std::stoi(value);
-                }
-            }
-        }
-
-        loadFile.close();
-    }
-}
-
-void Recognition::saveVariables(const std::string& fileName) {
-    std::ofstream saveFile(fileName);
-
-    saveFile << "lower_green_h=" << lowerGreen[0] << '\n';
-    saveFile << "lower_green_s=" << lowerGreen[1] << '\n';
-    saveFile << "lower_green_v=" << lowerGreen[2] << '\n';
-    saveFile << "upper_green_h=" << upperGreen[0] << '\n';
-    saveFile << "upper_green_s=" << upperGreen[1] << '\n';
-    saveFile << "upper_green_v=" << upperGreen[2] << '\n';
-    saveFile << "kernel_iterations=" << kernelIterations << '\n';
-    saveFile << "table_epsilon_rate=" << tableEpsilonRate << '\n';
-    saveFile << "min_radius_rate=" << minRadiusRate << '\n';
-    saveFile << "max_radius_rate=" << maxRadiusRate << '\n';
-    saveFile << "min_distance_rate=" << minDistanceRate << '\n';
-    saveFile << "circle_perfectness=" << circlePerfectness << '\n';
-    saveFile << "circle_threshold=" << circleThreshold << '\n';
-    saveFile << "max_ball_jump=" << maxBallJump << '\n';
-
-    saveFile.close();
 }

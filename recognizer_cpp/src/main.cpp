@@ -45,6 +45,15 @@ TrackbarWindow<int> getCircleTrackbarWindow(Recognition& recognition) {
 	return circleTrackbars;
 }
 
+TrackbarWindow<int> getNNTrackbarWindow(Recognition& recognition) {
+	TrackbarWindow<int> nnTrackbars("nn_trackbars");
+
+	nnTrackbars.addTrackbar("MATCH_LIMIT_RATE", 20, 100, recognition.matchLimitRate);
+	nnTrackbars.addTrackbar("NONE_LIMIT_RATE", 20, 100, recognition.noneLimitRate);
+
+	return nnTrackbars;
+}
+
 int main(int argc, char** argv) {
 	if (argc == 1) {
 		printf("usage: snooker_analysis <video_path> <start_frame(optional)> <end_frame(optional)>\n");
@@ -67,15 +76,20 @@ int main(int argc, char** argv) {
 	std::chrono::milliseconds duration;
 
 	Recognition recognition;
-	recognition.loadVariables("recognizer_cpp/config.txt");
 	TrackbarWindow<double> hsvTrackbars = getHSVTrackbarWindow(recognition);
 	TrackbarWindow<int> circleTrackbars = getCircleTrackbarWindow(recognition);
 	TrackbarWindow<int> mainTrackbars("main_trackbars");
+	TrackbarWindow<int> nnTrackbars = getNNTrackbarWindow(recognition);
 
 	int shownBallColor = 5;
 	int shownBallId = 0;
 	mainTrackbars.addTrackbar("SHOWN_BALL_COLOR", 0, 7, shownBallColor);
 	mainTrackbars.addTrackbar("SHOWN_BALL_ID", 0, 14, shownBallId);
+
+	hsvTrackbars.loadTrackbars("recognition_cpp/config.txt");
+	circleTrackbars.loadTrackbars("recognition_cpp/config.txt");
+	mainTrackbars.loadTrackbars("recognition_cpp/config.txt");
+	nnTrackbars.loadTrackbars("recognition_cpp/config.txt");
 
 	int currentFrame = 0;
 	const int maxFrames = 3;
@@ -100,6 +114,7 @@ int main(int argc, char** argv) {
 		hsvTrackbars.updateTrackbars();
 		circleTrackbars.updateTrackbars();
 		mainTrackbars.updateTrackbars();
+		nnTrackbars.updateTrackbars();
 
 		recognition.processFrameWithNN(videoFrame);
 		cv::Mat processedImage;
@@ -126,7 +141,11 @@ int main(int argc, char** argv) {
 			cv::destroyAllWindows();
 
 			if (key == 's') {
-				recognition.saveVariables("recognizer_cpp/config.txt");
+				//first save must be overwrite
+				hsvTrackbars.saveTrackbars("recognizer_cpp/config.txt", true);
+				circleTrackbars.saveTrackbars("recognizer_cpp/config.txt");
+				mainTrackbars.saveTrackbars("recognizer_cpp/config.txt");
+				nnTrackbars.saveTrackbars("recognizer_cpp/config.txt");
 			}
 			break;
 		}

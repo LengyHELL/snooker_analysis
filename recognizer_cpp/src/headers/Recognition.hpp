@@ -28,6 +28,10 @@ struct BallIndex {
 	}
 };
 
+struct BallData {
+	std::vector<cv::Point> path = std::vector<cv::Point>();
+};
+
 struct BallMovement {
 	float distance;
 	int* currentId;
@@ -46,7 +50,8 @@ class Recognition {
 	std::vector<Ball> previousBalls;
 	std::vector<Ball> balls;
     std::vector<cv::Point> quad;
-	std::map<BallIndex, std::vector<cv::Point>> ballPaths;
+
+	std::map<BallIndex, BallData> ballData;
 	
     std::vector<Template> templates;
     fdeep::model model;
@@ -71,20 +76,19 @@ public:
 	double tableEpsilonRate = 5;
 
 	cv::Mat debugFrameCircles;
-	int minRadiusRate = 5;		// 6
+	int minRadiusRate = 5;		// 5
 	int maxRadiusRate = 12;		// 12
-	int minDistanceRate = 12;	// 16
-	int circlePerfectness = 10;	// 15
-	int circleThreshold = 200;	// 80
-	int maxBallJump = 140;		// 140
+	int minDistanceRate = 12;	// 12
+	int circlePerfectness = 10;	// 10
+	int circleThreshold = 40;	// 40
+	int maxBallJump = 250;		// 250
 
 	cv::Mat processedFramePath;
+	int matchLimitRate = 50;
+	int noneLimitRate = 100;
 
     Recognition();
 
 	void processFrameWithNN(const cv::Mat& videoFrame);
 	std::vector<cv::Point> getBallPath(const BallLabel& label, const int& id = 0) const;
-
-	void saveVariables(const std::string& fileName);
-	void loadVariables(const std::string& fileName);
 };
