@@ -1,26 +1,25 @@
 \renewcommand{\lstlistingname}{kódrészlet}
 
-\chapter{Megvalósítás}
+\chapter{A felismerő megvalósítása}
 \section{Alkalmazott módszerek}
-A megvalósítás során az eddig megismert módszereket fogom felhasználni, azokat Python programozási nyelven fogom elkészíteni és ismertetni. Az egyes algoritmusokat függvények formájában készítem el, ezeket a függvényeket pedig több Python szkriptben is felhasználom.
-\par Az eddig megismert módszerek közül elsősorban a nyers bemenetből emelem ki a játékterületet, ezt követően a golyók pozíciójának felismeréséhez kör detektálást és egy neurális hálózatot fogok használni. A neurális hálózat betanításához az adatkészletet kör detektálással, mintaillesztéssel és kézi válogatással fogom elkészíteni. A következőkben az egyes függvények működését, azokban felhasznált külső könyvtárak eszközeit ismertetem részleteiben.
+A felismerő program megvalósítása során az eddig megismert módszereket fogom felhasználni, azokat C++ programozási nyelven fogom elkészíteni és ismertetni. Az egyes algoritmusokat függvények formájában készítem el, ezeket a függvényeket pedig több helyen is felhasználom.
+\par Az eddig megismert módszerek közül elsősorban a nyers bemenetből emelem ki a játékterületet, ezt követően a golyók pozíciójának felismeréséhez kör detektálást és egy neurális hálózatot fogok használni. A következőkben az egyes függvények működését, azokban felhasznált külső könyvtárak eszközeit ismertetem részleteiben.
 \par A fejezetek felosztása az eddig megismert lépések szerint kerül rendezésre.
 
 \section{A szükséges könyvtárak importálása}
 Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programnak, hogy használja a külső könyvtárakat.
-\newline Ez a \ref{cod:import} kódsorok alapján tehető meg.
+\newline A legfontosabb könyvtárak importálása a \ref{cod:import} kódsorok alapján tehető meg.
 
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={Könyvtárak importálása.}, label={cod:import}]
-import math
-import numpy as np
-import cv2
+\begin{lstlisting}[language=C++, numbers=left, caption={Könyvtárak importálása.}, label={cod:import}]
+#include <opencv2/opencv.hpp>
+#include <fdeep/fdeep.hpp>
 \end{lstlisting}
 \end{minipage}
 
-\par A \lstinline{math} könyvtár segítségével matematikai műveleteket (gyökvonás, szinusz, koszinusz) lehet végezni, a \lstinline{numpy} könyvtár a tömbök, mátrixok kezelését, azokkal való műveleteket segíti és gyorsítja, a \lstinline{cv2} pedig az OpenCV eszközeit teszi elérhetővé.
+\par Az \lstinline{opencv.hpp} könyvtár az OpenCV által biztosított képfeldolgozási függvényeket biztosítja, a \lstinline{fdeep.hpp} könyvtár pedig a Tensorflow -al készített neurális hálózat betöltését teszi lehetővé.
 
 \section{Az asztal kontúrjának megkeresése}
 \label{section:megv_asztal_kontur}
