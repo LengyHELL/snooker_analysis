@@ -2,7 +2,7 @@
 \label{chapter:program_tervezes}
 \section{Az asztal felismerése}
 
-Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más mint az asztal, vagy más néven játékterület felismerése. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program készítése közben egy valósághű internetes snooker játékról\cite{flyordie} készített felvételeket fogok használni a felismeréshez. A videójátékból származó felvétel azonban bizonyos szempontokból eltér a valóságtól, ezekről később lesz szó, de lényegében jól használható a felismerés elkészítéséhez, továbbá megkönnyíti a tesztelést és a felvételek beszerzését.
+Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más mint az asztal, vagy más néven játékterület felismerése. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program bemutatásához egy felülnézetből készített snooker játszma felvételét fogom használni.
 \par Az asztalfelismerő lépés kicsit elkülönül a többi lépéstől, hiszen a további lépések különféle bemenetszerzési módszerektől függetlenül, megegyezően hajtódnak végre. Ahhoz hogy a további lépések pontosak legyenek és megfeleő teljesítménnyel működjenek, az asztalt mindig azonos méretben, elforgatásban és torzításban kell megkapniuk.
 \par Ebben a módszerben az elforgatást leszámítva a detektálás, átméretezés és a torzítás lesz középpontban. Az elforgatást nem veszem figyelembe, hiszen a bemenetről feltételezhető, hogy bizonyos orientációban áll rendelkezésre.
 
@@ -10,8 +10,8 @@ Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más min
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen.png}
-    \caption{Egy nyers bemeneti kép a játék ablakáról.}
+    \includegraphics[width=110mm, keepaspectratio]{figures/input_screen.png}
+    \caption{Egy nyers bemeneti kép a felvételről.}
     \label{fig:bemeneti_kep}
 \end{figure}
 
@@ -19,7 +19,7 @@ Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más min
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen_hsv.png}
+    \includegraphics[width=110mm, keepaspectratio]{figures/input_screen_hsv.png}
     \caption{A \ref{fig:bemeneti_kep} kép HSV re alakított verziója RGB reprezentációban.}
     \label{fig:bemeneti_kep_hsv}
 \end{figure}
@@ -37,7 +37,7 @@ Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más min
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=115mm, keepaspectratio]{figures/input_screen_mask.png}
+    \includegraphics[width=110mm, keepaspectratio]{figures/input_screen_mask.png}
     \caption{A \ref{fig:bemeneti_kep} kép a maszkolás után.}
     \label{fig:bemeneti_kep_mask}
 \end{figure}
@@ -46,7 +46,7 @@ Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más min
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=100mm, keepaspectratio]{figures/input_table.png}
+    \includegraphics[width=110mm, keepaspectratio]{figures/input_table.png}
     \caption{Az eredeti képből kinyert játékterület.}
     \label{fig:bemeneti_asztal2}
 \end{figure}
@@ -65,27 +65,26 @@ A golyók azonosítását különféle mószerekkel lehet elvégezni, ezek elté
 		\toprule
 		golyó színe & x pozíció [0, 1023] & y pozíció [0, 511] \\
 		\midrule
-        black  & 914 & 256\\  
-        blue   & 542 & 414\\  
-        brown  & 206 & 368\\  
-        green  & 880 & 316\\  
-        pink   & 808 & 398\\  
-        red    & 744 & 368\\  
-        red    & 172 & 174\\  
-        red    & 846 & 262\\  
-        red    & 706 & 346\\  
-        red    & 854 & 200\\  
-        red    & 874 & 256\\  
-        red    & 924 & 180\\  
-        red    & 802 & 312\\  
-        red    & 814 & 196\\  
-        red    & 840 & 244\\  
-        red    & 938 & 298\\  
-        red    & 870 & 274\\  
-        red    & 858 & 240\\  
-        red    & 854 & 298\\  
-        white  & 162 & 374\\  
-        yellow & 830 & 276\\  
+        fehér     & 298.5 & 283.5\\
+        piros 0   & 244.5 & 204.5\\
+        piros 1   & 242.5 & 243.5\\
+        piros 2   & 323.5 & 159.5\\
+        piros 3   & 190.5 & 260.5\\
+        piros 4   & 202.5 & 222.5\\
+        piros 5   & 216.5 & 259.5\\
+        piros 6   & 268.5 & 227.5\\
+        piros 7   & 144.5 & 192.5\\
+        piros 8   & 625.5 & 451.5\\
+        piros 9   & 166.5 & 234.5\\
+        piros 10  & 202.5 & 247.5\\
+        piros 11  & 231.5 & 254.5\\
+        piros 12  & 223.5 & 234.5\\
+        sárga     & 797.5 & 174.5\\
+        zöld      & 797.5 & 331.5\\
+        barna     & 536.5 & 291.5\\
+        kék       & 512.5 & 252.5\\
+        rózsaszín & 285.5 & 253.5\\
+        fekete    & 120.5 & 211.5\\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -105,9 +104,9 @@ Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaille
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=73mm, keepaspectratio]{figures/wrong_green.png}\hspace{2mm}
-	\includegraphics[width=73mm, keepaspectratio]{figures/green_ok.png}\\\vspace{5mm}
-    \caption{A zöld golyó mintaillesztésének hibája (bal) és annak orvoslása HSV konverzióval (jobb).}
+    \includegraphics[width=110mm, keepaspectratio]{figures/wrong_green.png}\hspace{2mm}
+	\includegraphics[width=110mm, keepaspectratio]{figures/green_ok.png}
+    \caption{A zöld golyó mintaillesztésének hibája (felül) és annak orvoslása HSV konverzióval (alul).}
     \label{fig:rossz_zold}
 \end{figure}
 
@@ -115,9 +114,9 @@ Ennek a módszernek az alapja tisztán mintaillesztéssel működik. A mintaille
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=73mm, keepaspectratio]{figures/wrong_brown.png}\hspace{2mm}
-	\includegraphics[width=73mm, keepaspectratio]{figures/brown_ok.png}\\\vspace{5mm}
-    \caption{A barna golyó mintaillesztésének hibája (bal) és annak orvoslása a piros golyók levonásával (jobb).}
+    \includegraphics[width=110mm, keepaspectratio]{figures/wrong_brown.png}\hspace{2mm}
+	\includegraphics[width=110mm, keepaspectratio]{figures/brown_ok.png}
+    \caption{A barna golyó mintaillesztésének hibája (felül) és annak orvoslása a piros golyók levonásával (alul).}
     \label{fig:rossz_barna}
 \end{figure}
 
@@ -138,7 +137,7 @@ Az előző módszerhez hasonlóan a golyó színek szerinti osztályozása itt i
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=100mm, keepaspectratio]{figures/detected_circles.png}
+    \includegraphics[width=110mm, keepaspectratio]{figures/detected_circles.png}
     \caption{A Hough transzformáció lefutása után kapott körök.}
     \label{fig:talalt_korok}
 \end{figure}
@@ -175,12 +174,12 @@ A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhet�
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_1.png}\hspace{5mm}
-    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_2.png}\hspace{5mm}
-	\includegraphics[width=30mm, keepaspectratio]{figures/dataset_3.png}\\\vspace{5mm}
-    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_4.png}\hspace{5mm}
-    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_5.png}\hspace{5mm}
-	\includegraphics[width=30mm, keepaspectratio]{figures/dataset_6.png}\\\vspace{5mm}
+    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_1.png}\hspace{2mm}
+    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_2.png}\hspace{2mm}
+	\includegraphics[width=30mm, keepaspectratio]{figures/dataset_3.png}\\\vspace{2mm}
+    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_4.png}\hspace{2mm}
+    \includegraphics[width=30mm, keepaspectratio]{figures/dataset_5.png}\hspace{2mm}
+	\includegraphics[width=30mm, keepaspectratio]{figures/dataset_6.png}\\\vspace{2mm}
     \caption{Az adatkészlet elemei.}
     \label{fig:adatkeszlet}
 \end{figure}
@@ -191,7 +190,7 @@ A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhet�
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=100mm, keepaspectratio]{figures/recognised_table.png}
+    \includegraphics[width=110mm, keepaspectratio]{figures/recognised_table.png}
     \caption{A neurális hálózattal való golyófelismerés kimenete.}
     \label{fig:felismert_asztal}
 \end{figure}
