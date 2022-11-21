@@ -91,7 +91,7 @@ class Recognition {
 	bool cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage);
 	void findBalls(const cv::Mat& image);
 	void setBallCuts(const cv::Mat& image);
-	void labelBallsWithTM();
+	void labelBallsWithTM(bool hsvMode);
 	void labelBallsWithNN();
 
 public:
@@ -120,5 +120,6 @@ public:
     Recognition();
 
 	void processFrameWithNN(const cv::Mat& videoFrame);
+	void processFrameWithTM(const cv::Mat& videoFrame);
 	BallData getBallData(const BallLabel& label, const int& id = 0) const;
 };

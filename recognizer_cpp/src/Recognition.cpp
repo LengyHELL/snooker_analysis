@@ -263,7 +263,7 @@ void Recognition::setBallCuts(const cv::Mat& image) {
     }
 }
 
-void Recognition::labelBallsWithTM() {
+void Recognition::labelBallsWithTM(bool hsvMode = false) {
     for (auto& ball : balls) {
         std::vector<float> results;
 
@@ -277,7 +277,14 @@ void Recognition::labelBallsWithTM() {
             float resultCols = ball.cut.BGR.cols - temp.image.cols + 1;
             result.create(resultRows, resultCols, CV_32FC1);
 
-            cv::matchTemplate(ball.cut.BGR, temp.image, result, cv::TM_CCORR_NORMED);
+            if (hsvMode) {
+                cv::Mat hsvTempImage;
+                cv::cvtColor(temp.image, hsvTempImage, cv::COLOR_BGR2HSV);
+                cv::matchTemplate(ball.cut.HSV, hsvTempImage, result, cv::TM_CCORR_NORMED);
+            }
+            else {
+                cv::matchTemplate(ball.cut.BGR, temp.image, result, cv::TM_CCORR_NORMED);
+            }
 
             double maxValue;
             cv::minMaxLoc(result, NULL, &maxValue);
@@ -365,6 +372,60 @@ void Recognition::labelBallsWithNN() {
         //     iterator++;
         // }
     }
+}
+
+void Recognition::processFrameWithTM(const cv::Mat& videoFrame) {
+    findTable(videoFrame);
+
+    cv::Mat imageWarped;
+
+    if (!cutAndWarp(videoFrame, imageWarped)) {
+        processedFramePath = videoFrame;
+        return;
+    }
+
+
+    /* for (const Template& templ : templates) {
+        if (templ.label != BallLabel::GREEN) {
+            continue;
+        }
+        cv::Mat result;
+        cv::matchTemplate(imageWarped, templ.image, result, cv::TM_CCORR_NORMED);
+
+        cv::Point previous;
+        for (int x = 0; x < result.cols; x++) {
+            for (int y = 0; y < result.rows; y++) {
+                if (result.at<float>(cv::Point(x, y)) > 0.942) { // 0.942
+                    if (cv::norm(previous - cv::Point(x, y)) < 2 * circleRadius) {
+                        continue;
+                    }
+                    Ball ball(cv::Point(x + circleRadius, y + circleRadius), circleRadius, templ.label);
+                    cv::rectangle(imageWarped, ball.getRect(), cv::Scalar(0, 0, 255), 2);
+                    cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
+                    previous = cv::Point(x, y);
+                }
+            }
+        }
+    } */
+
+    findBalls(imageWarped);
+    setBallCuts(imageWarped);
+    labelBallsWithTM();
+
+    for (const auto& ball : balls) {
+        if (ball.label == BallLabel::NONE) {
+            continue;
+        }
+
+        // cv::circle(imageWarped, ball.getCenter(), ball.radius, cv::Scalar(0, 0, 255), 2);
+
+        cv::rectangle(imageWarped, ball.getRect(), cv::Scalar(0, 0, 255));
+        cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
+    }
+
+    previousBalls = balls;
+
+    processedFramePath = imageWarped;
 }
 
 void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
