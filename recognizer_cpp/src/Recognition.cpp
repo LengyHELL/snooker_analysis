@@ -490,6 +490,29 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
         cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
     }
 
+    for (const auto& previousBall : previousBalls) {
+        bool scored = true;
+        for (const auto& ball : balls) {
+            if ((ball.id == previousBall.id) && (ball.label == previousBall.label)) {
+                scored = false;
+                break;
+            }
+        }
+        if (scored) {
+            std::vector<cv::Point> holes = {
+                {0, 0},         {0, width / 2},         {0, width},
+                {height, 0},    {height, width / 2},    {height, width}
+            };
+
+            for (const auto& hole : holes) {
+                float distance = cv::norm(hole - previousBall.getCenter());
+                if (distance < circleRadius * 4) {
+                    std::cerr << "scored " << previousBall.label << '\n';
+                }
+            }
+        }
+    }
+
     previousBalls = balls;
 
     processedFramePath = imageWarped;
