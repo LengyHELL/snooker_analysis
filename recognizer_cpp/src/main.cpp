@@ -175,6 +175,9 @@ int main(int argc, char** argv) {
 		else if ((key == 'w') && pause) {
 			nextFrame = true;
 		}
+		else if (key == 'e') {
+			cv::imwrite("screenshot.png", resizedImage);
+		}
 
 		recognition.processedFramePosition = videoCapture.get(cv::CAP_PROP_POS_FRAMES);
 		auto timerStop = std::chrono::high_resolution_clock::now();
