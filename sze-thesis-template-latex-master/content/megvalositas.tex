@@ -33,19 +33,18 @@ A nyers képből a játékterület megszerzéséhez azt először be kell tölte
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={A játékterület maszkolása.}, label={cod:maszk}]
-hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+\begin{lstlisting}[language=C++, numbers=left, caption={A játékterület maszkolása.}, label={cod:maszk}]
+cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
 
-lower_green = np.array([40, 190, 50])
-upper_green = np.array([65, 255, 225])
+cv::Scalar lowerGreen = {50, 50, 70};
+cv::Scalar upperGreen = {65, 255, 255j};
 
-mask = cv2.inRange(hsv, lower_green, upper_green)
-
-result = cv2.bitwise_and(image, image, mask = mask)
+cv::inRange(hsv, lowerGreen, upperGreen, mask);
+cv::bitwise_and(image, image, result, mask);
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV.
+\par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv::cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második a kimeneti kép változója, a harmadik pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV.
 \par A BGR értékekből a HSV értékek kiszámolásához először az értéket (Value) kell kiszámolni, ez a \ref{for:HSV_V} egyenlet\cite{opencv_docs} szerint lehetséges,
 
 \begin{equation}
@@ -82,7 +81,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \par ahol $H$ az árnyalatot (Hue), $V$ az értéket (Value), $R$, $G$ és $B$ a három színkomponenst, $min(R,G,B)$ pedig a színkomponensek közül a minimálisat jelöli.
 \par Amennyiben $H$ értéke kisebb, mint $0$, annak értéke $H \leftarrow H+360$ szerint alakul. A 8-bites és 16-bites színnel rendelkező képeknél $R$, $G$ és $B$ értéke kezdetben normalizálásra kerül a $[0,1]$ intervallumba, ennek következtében a három értéknél $0 \le V \le 1$, $0 \le S \le 1$, $0 \le H \le 360$ tartományok jelentkeznek. Az értékek visszaállítása tartománynak megfelelően 8-bites képek esetében az értékek megszerzése után $V \leftarrow 255V$, $S \leftarrow 255S$ és $H \leftarrow H/2$ szerint megy végbe, ez hasonló 16-bites szín esetében is. 32-bites színnel rendelkező képeknél nincs kezdeti normalizálás, és ennek következtében visszaalakítás sem szükséges.\cite{opencv_docs}
 
-\par Az \ref{cod:maszk} kódrészlethez visszatérve, a \lstinline{lower_green} és \lstinline{upper_green} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv2.inRange} függvénnyel \cite{opencv_docs} végzem el, itt a paraméterek sorban a HSV re konvertált kép, valamint az alsó és felső intenzitás értékek.
+\par Az \ref{cod:maszk} kódrészlethez visszatérve, a \lstinline{lowerGreen} és \lstinline{upperGreen} változók az alsó és felső intenzitási határokat jelölik sorrendnek megfelelően. A maszk elkészítését a \lstinline{cv::inRange} függvénnyel \cite{opencv_docs} végzem el, itt a paraméterek sorban a HSV re konvertált kép, az alsó és felső intenzitás értékek, valamint a kimeneti maszk változója.
 \newline A függvény a \ref{for:maszkolas} egyenlet alapján dönti el, a maszk intenzitását,
 
 \begin{equation}
@@ -90,7 +89,7 @@ result = cv2.bitwise_and(image, image, mask = mask)
     \label{for:maszkolas}
 \end{equation}
 
-\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után a maszkolás megtörténik az eredeti bemenő képre a \lstinline{cv2.bitwise_and} függvény \cite{opencv_docs} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer és a maszk \lstinline{mask}.
+\par ahol $M$ a maszk, $L$ az alsó, $U$ a felső és $S$ a bemeneti HSV képet jelöli. A \ref{for:maszkolas} függvény mindhárom intenzitásra alkalmazásra kerül, a maszkban az intervallumon belüli intenzitások 255, a kívüliek pedig 0 értéket kapnak. A maszk elkészítése után a maszkolás megtörténik az eredeti bemenő képre a \lstinline{cv::bitwise_and} függvény \cite{opencv_docs} segítségével. Itt a paraméterek a bejövő eredeti kép \lstinline{image} kétszer, a kimeneti kép és a maszk \lstinline{mask}.
 \newline A folyamat során a metódus a \ref{for:maszk_alkalmazas} egyenlet szerint jár el,
 
 \begin{equation}
@@ -104,14 +103,14 @@ result = cv2.bitwise_and(image, image, mask = mask)
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={Szürkeárnyalatolás és éldetektálás.}, label={cod:gray_and_canny}]
-image_gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+\begin{lstlisting}[language=C++, numbers=left, caption={Szürkeárnyalatolás és éldetektálás.}, label={cod:gray_and_canny}]
+cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
 
-edges = cv2.Canny(image_gray, 200, 100)
+cv::Canny(imageGray, edges, 200, 100);
 \end{lstlisting}
 \end{minipage}
 
-\par A szürkeárnyalati konverziót a már megismert \lstinline{cv2.cvtColor} függvénnyel \cite{opencv_docs} végzem el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressem az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv2.Canny}) segítségével.
+\par A szürkeárnyalati konverziót a már megismert \lstinline{cv::cvtColor} függvénnyel \cite{opencv_docs} végzem el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressem az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv::Canny}) segítségével.
 \newline A Canny éldetektálás általában több lépésre bontható szét, ezek lehetnek:
 
 \begin{itemize}
@@ -122,7 +121,7 @@ edges = cv2.Canny(image_gray, 200, 100)
     \item kettős küszöbölés élek szűréséhez.
 \end{itemize}
 
-\par Az éldetektálásnál meg kell adni a függvénynek a szürkeárnyalatos képet (\lstinline{image_gray}), továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, az hozzáadódik az élek közé, ha az alsó küszöb alatt van eldobódik és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján kerül az élek közé. Az éldetektálással kapott kép (\lstinline{edges}) a \ref{fig:bemeneti_kep_edge} ábrán látható.
+\par Az éldetektálásnál meg kell adni a függvénynek a szürkeárnyalatos képet (\lstinline{imageGray}), a kimeneti képet, továbbá két küszöbértéket, amelyet a Canny detektálás a kettős küszöbölés folyamat során fog felhasználni. Itt, ha a felső küszöb felett van egy potenciális él, az hozzáadódik az élek közé, ha az alsó küszöb alatt van eldobódik és ha a felső és alsó küszöbök közt helyezkedik el, akkor a szomszédos pixelek alapján kerül az élek közé. Az éldetektálással kapott kép (\lstinline{edges}) a \ref{fig:bemeneti_kep_edge} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -136,17 +135,32 @@ edges = cv2.Canny(image_gray, 200, 100)
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={Kontúrok keresése.}, label={cod:contours}]
-contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+\begin{lstlisting}[language=C++, numbers=left, caption={Kontúrok keresése.}, label={cod:contours}]
+cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-contours = [cv2.convexHull(c) for c in contours]
-contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
+for(auto& contour : contours) {
+    std::vector<cv::Point> hull;
+    cv::convexHull(contour, hull);
+    contour = hull;
+}
+
+std::sort(contours.begin(), contours.end(), areaComparator);
 \end{lstlisting}
 \end{minipage}
 
-\par A \ref{cod:contours} kódrészletben található \lstinline{cv2.findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonala a \lstinline{cv2.convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapható meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={Sorba rendezéshez használt segédfüggvény.}, label={cod:contours_helper}]
+bool areaComparator(const std::vector<cv::Point>& lhs, const std::vector<cv::Point>& rhs) {
+    return cv::contourArea(lhs) > cv::contourArea(rhs);
+}
+\end{lstlisting}
+\end{minipage}
+
+\par A \ref{cod:contours} kódrészletben található \lstinline{cv::findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonala a \lstinline{cv::convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapható meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
 \par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthető az alakzat (kontúr koordináta láncolat pontjainak csökkentése), ezzel a folytatólagos műveleteket felgyorsítva.
-\par A legnagyobb kontúr kiválasztásához tudni kell az egyes kontúrok területét. A területet a \lstinline{cv2.contourArea} függvénnyel \cite{opencv_docs} lehet kiszámolni. Ez megtehető minden eddigi kontúr esetében függvénynek való paraméterkénti átadással. A kiszámolt területek közül a legnagyobbat kiválasztva, annak kontúr koordináta láncolata eltárolásra kerül. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
+\par A legnagyobb kontúr kiválasztásához tudni kell az egyes kontúrok területét. A területet a \lstinline{cv::contourArea} függvénnyel \cite{opencv_docs} lehet kiszámolni. Ez megtehető minden eddigi kontúr esetében függvénynek való paraméterkénti átadással. A kiszámolt területek közül a legnagyobbat kiválasztva, annak kontúr koordináta láncolata eltárolásra kerül. A sorba rendezés a \ref{cod:contours} kódrészlet utolsó sorában látható függvénnyel történik, itt az \lstinline{areaComparator} egy segédfüggvény, amely az előzőleg említett \lstinline{cv::contourArea} metódust\cite{opencv_docs} használja a területek összehasonlításához és rendezéséhez. A segédfüggvény a \ref{cod:contours_helper} kódrészletben látható. A kapott kontúr kirajzolva a \ref{fig:bemeneti_kep_contour} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -155,7 +169,7 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
     \label{fig:bemeneti_kep_contour}
 \end{figure}
 
-\par A \lstinline{cv2.contourArea} függvény a Surveyor's Area algoritmust \cite{braden1986surveyor} használja az alakzatok területének számolásához. Ez az algoritmus a Green-tétel egy speciális esete, amely alkalmazható egyszerű sokszögekre.
+\par A \lstinline{cv::contourArea} függvény a Surveyor's Area algoritmust \cite{braden1986surveyor} használja az alakzatok területének számolásához. Ez az algoritmus a Green-tétel egy speciális esete, amely alkalmazható egyszerű sokszögekre.
 \newline Az algoritmus a \ref{for:green_formula} egyenletben látható,
 
 \begin{equation}
@@ -195,19 +209,27 @@ contours = sorted(contours, key=lambda x : cv2.contourArea(x), reverse=True)[:1]
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={Metszéspont kereső algoritmus.}, label={cod:intersection}]
-def intersection(p1, p2, p3, p4):
- d = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0])
- if (abs(d) < 1e-8):
-    return False
+\begin{lstlisting}[language=C++, numbers=left, caption={Metszéspont kereső algoritmus.}, label={cod:intersection}]
+bool parallel = false;
+cv::Point p1, p2, p3, p4, intersection;
+float d, t1, t2;
 
- t1 = (p1[0]*p2[1] - p1[1]*p2[0]) * (p3[0] - p4[0]) - (p3[0]*p4[1] - p3[1]*p4[0]) * (p1[0] - p2[0])
- t2 = (p1[0]*p2[1] - p1[1]*p2[0]) * (p3[1] - p4[1]) - (p3[0]*p4[1] - p3[1]*p4[0]) * (p1[1] - p2[1])
- return [t1 / d, t2 / d]
+d = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+
+if (std::abs(d) < 1e-8) {
+    parallel = true;
+}
+
+if (!parallel) {
+    t1 = (p1.x*p2.y - p1.y*p2.x) * (p3.x - p4.x) - (p3.x*p4.y - p3.y*p4.x) * (p1.x - p2.x);
+    t2 = (p1.x*p2.y - p1.y*p2.x) * (p3.y - p4.y) - (p3.x*p4.y - p3.y*p4.x) * (p1.y - p2.y);
+    
+    intersection = cv::Point(t1 / d, t2 / d);
+}
 \end{lstlisting}
 \end{minipage}
 
-\par ahol \lstinline{p1}, \lstinline{p2}, \lstinline{p3}, \lstinline{p4} a fent megismert négy koordináta, \lstinline{d} a kiszámolt nevező, \lstinline{t1} és \lstinline{t2} pedig segédváltozók a számlálók tárolásához. A kódrészlet 3. és 4. sorában látható, hogy abban az esetben ha \lstinline{d} nagyon kicsi, a függvény \lstinline{False} értéket ad vissza. Ez azért van, mert a \ref{for:vector_intersection_denominator} függvényben kiszámolt nevező, $D = 0$ esetén a két egyenes párhuzamos.
+\par ahol \lstinline{p1}, \lstinline{p2}, \lstinline{p3}, \lstinline{p4} a fent megismert négy koordináta, \lstinline{d} a kiszámolt nevező, \lstinline{t1} és \lstinline{t2} pedig segédváltozók a számlálók tárolásához. A kódrészlet 7. - 9. soraiban látható, hogy abban az esetben ha \lstinline{d} nagyon kicsi, a metszéspont nem lesz kiszámolva. Ez azért van, mert a \ref{for:vector_intersection_denominator} függvényben kiszámolt nevező, $D = 0$ esetén a két egyenes párhuzamos, és ilyenkor nincs metszéspont.
 \par A folyamat végeredményeképp kapott kép a \ref{fig:bemeneti_kep_quad} ábrán látható.
 
 \begin{figure}[!ht]
@@ -225,53 +247,56 @@ Ahhoz, hogy az asztal a kontúr segítségével kivágható legyen a képből, s
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={Átrendező algoritmus.}, label={cod:atrendezes}]
-pts = contour.reshape(4, 2)
-src = np.zeros((4, 2), "float32")
+\begin{lstlisting}[language=C++, numbers=left, caption={Átrendező algoritmus.}, label={cod:atrendezes}]
+std::vector<int> sums, diffs;
 
-sums = pts.sum(axis=1)
-diffs = np.diff(pts, axis=1).flatten()
+for (auto& point : quad) {
+    sums.push_back(point.x + point.y);
+    diffs.push_back(point.y - point.x);
+}
 
-src[0] = pts[np.argmin(sums)]
-src[1] = pts[np.argmin(diffs)]
-src[2] = pts[np.argmax(sums)]
-src[3] = pts[np.argmax(diffs)]
+std::vector<cv::Point2f> src;
+src.push_back(quad[std::min_element(sums.begin(), sums.end()) - sums.begin()]);
+src.push_back(quad[std::min_element(diffs.begin(), diffs.end()) - diffs.begin()]);
+src.push_back(quad[std::max_element(sums.begin(), sums.end()) - sums.begin()]);
+src.push_back(quad[std::max_element(diffs.begin(), diffs.end()) - diffs.begin()]);
 \end{lstlisting}
 \end{minipage}
 
-\par ahol először az első két sorban rendezem a koordináta pontokat a \lstinline{pts} változóba és készítek egy \lstinline{src} tömböt a rendezett adatok tárolásához. A következő lépésben, ahhoz, hogy meg tudjam állapítani a pontok relatív helyzetét, készítek az egyes pontokból összegeket (\lstinline{sums}) és különbségeket (\lstinline{diffs}), amelyek az egyes koordináták $x$ és $y$ összetevőinek összegeiből vagy különbségeiből állnak. Ezekből az összegek és különbségekből megállapítható a pontok helyzete, tehát például a bal felső koordinátát az összegek közül a legkisebb érték, a bal alsót a különbségek közül a legnagyobb érték határozza meg, és így a többi koordinátát is. A fent említett műveletek a kódrészlet 7 - 10 soraiban láthatóak.
+\par ahol az előzőleg kiszámolt négy metszéspontot felhasználva, ahhoz hogy meg tudjam állapítani a azok relatív helyzetét, készítek az egyes pontokból összegeket (\lstinline{sums}) és különbségeket (\lstinline{diffs}), amelyek az egyes koordináták $x$ és $y$ összetevőinek összegeiből vagy különbségeiből állnak. Ezekből az összegek és különbségekből megállapítható a pontok helyzete, tehát például a bal felső koordinátát az összegek közül a legkisebb érték, a bal alsót a különbségek közül a legnagyobb érték határozza meg, és így a többi koordinátát is. A fent említett műveletek a kódrészlet 9. - 11. soraiban láthatóak.
 \par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükség van még a célértékekre is.
 \newline A célértékek a \ref{cod:destination} kód soraival adhatóak meg,
 
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={A kimeneti értékek megadása.}, label={cod:destination}]
-width, height = (size[0] - 1, size[1] - 1)
+\begin{lstlisting}[language=C++, numbers=left, caption={A kimeneti értékek megadása.}, label={cod:destination}]
+std::vector<cv::Point2f> dst;
 
-dst = np.array([
-    [0,     0       ],
-    [width, 0       ],
-    [width, height  ],
-    [0,     height  ]],
-    dtype="float32")
+int width = 1024 - 1;
+int height = 512 - 1;
+
+dst.push_back(cv::Point(0, 0));
+dst.push_back(cv::Point(width, 0));
+dst.push_back(cv::Point(width, height));
+dst.push_back(cv::Point(0, height));
 \end{lstlisting}
 \end{minipage}
 
-\par itt a cél kép méretei egy érték páros formájában szerepelnek a \lstinline{size} változóban, ezek szélesség és magasság elemekre bomlanak a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg lehet adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
+\par itt a cél kép méretei egy érték páros formájában szerepelnek a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg lehet adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
 \par A transzformáció végrehajtásához mindezek után már csak a transzformációs mátrix elkészítésére van szükség, majd a transzformáció végrehajtására.
 \newline Ezek a \ref{cod:pers_transform} kódrészlettel hajthatóak végre,
 
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={A transzformáció végrehajtása.}, label={cod:pers_transform}]
-M = cv2.getPerspectiveTransform(src, dst)
-warp = cv2.warpPerspective(image, M, size)
+\begin{lstlisting}[language=C++, numbers=left, caption={A transzformáció végrehajtása.}, label={cod:pers_transform}]
+cv::Mat M = cv::getPerspectiveTransform(src, dst);
+cv::warpPerspective(image, warp, M, cv::Size(width, height));
 \end{lstlisting}
 \end{minipage}
 
-\par itt \lstinline{M} a transzformációs mátrix, amely a \lstinline{cv2.getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapható meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv2.warpPerspective} függvénnyel \cite{opencv_docs} alkalmazok az \lstinline{image} változóban tárolt képre az \lstinline{M} mátrix és \lstinline{size} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához.
+\par itt \lstinline{M} a transzformációs mátrix, amely a \lstinline{cv::getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapható meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv::warpPerspective} függvénnyel \cite{opencv_docs} alkalmazok az \lstinline{image} változóban tárolt képre az \lstinline{M} mátrix és \lstinline{cv::Size(width, height)} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához, a torzított kép a \lstinline{warp} változóban kerül tárolásra.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
 \section{Körkeresés}
@@ -289,40 +314,91 @@ A körök detektálásához az ún. Hough transzformációt (Hough Transformatio
 \vspace{2mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[language=Python, numbers=left, caption={A körkereső algoritmus.}, label={cod:hough_circle}]
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+\begin{lstlisting}[language=C++, numbers=left, caption={A körkereső algoritmus.}, label={cod:hough_circle}]
+cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
-minRadius = 5
-maxRadius = 11
-minDistance = 15
+float minRadius = 5;
+float maxRadius = 12;
+float minDistance = 12;
+int circleThreshold = 40;
+int circlePerfectness = 10;
 
-circles = cv2.HoughCircles(
+std::vector<cv::Vec3f> circles;
+cv::HoughCircles(
     gray,
-    cv2.HOUGH_GRADIENT,
+    circles,
+    cv::HOUGH_GRADIENT,
     1,
     minDistance,
-    param1=80,
-    param2=15,
-    minRadius=minRadius,
-    maxRadius=maxRadius)
+    circleThreshold,
+    circlePerfectness,
+    minRadius,
+    maxRadius);
 \end{lstlisting}
 \end{minipage}
 
-\par A kódrészletben a Hough transzformációt a \lstinline{cv2.HoughCircles} függvény\cite{opencv_docs} végzi el, ennek első paramétere egy szürkeárnyalatos kép, amely a kivágott asztal konvertálásával kerül bele a \lstinline{gray} változóba, a konvertálás a már megismert \lstinline{cv2.cvtColor} függvénnyel\cite{opencv_docs} megy végbe.
-\par A második paraméter az előzőleg megismert Hough transzformációs módszert\cite{opencv_docs,hough_transform,YUEN199071} adja meg a \lstinline{cv2.HOUGH_GRADIENT} kulcsszóval, továbbá a harmadik paraméter a folyamathoz felhasznált képet skálázza. A skálázas az eredeti kép felbontást \lstinline{1} értékkel nem változtatja, \lstinline{2} értékkel felére csökkenti azt, fordított arányosságnak megfelelően\cite{opencv_docs}. Ez a paraméter a folyamat lefutásának gyorsítását teszi lehetővé, azonban, akárcsak a jelenlegi esetben, kisebb körök detektálásához jobb az eredeti felbontás megtartása.
-\par A \lstinline{minRadius} (minimális sugár), \lstinline{maxRadius} (maximális sugár) és \lstinline{minDistance} (minimális távolság) paraméterek megadják a keresett körök tulajdonságait, így növelhető az algoritmus teljesítménye és csökkenthető a duplikációk előfordulása. A \lstinline{param1} és \lstinline{param2} névvel ellátott paraméterek a \lstinline{cv2.HOUGH_GRADIENT} használatakor az algoritmus kezdeti feldolgozó lépéseként végrehajtott Canny éldetektálás felső (\lstinline{param1}) és alsó (\lstinline{param2}) küszöbértékét adják meg\cite{opencv_docs}. Ez a Canny éldetektálás a \ref{section:megv_asztal_kontur} alfejezetben megismert módszerrel megegyezően hajtódik végre.
+\par A kódrészletben a Hough transzformációt a \lstinline{cv::HoughCircles} függvény\cite{opencv_docs} végzi el, ennek első paramétere egy szürkeárnyalatos kép, amely a kivágott asztal konvertálásával kerül bele a \lstinline{gray} változóba, a konvertálás a már megismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs} megy végbe.
+\par A második paraméter a megtalált körök listáját tartalmazza, a harmadik az előzőleg megismert Hough transzformációs módszert\cite{opencv_docs,hough_transform,YUEN199071} adja meg a \lstinline{cv::HOUGH_GRADIENT} kulcsszóval, továbbá a negyedik paraméter a folyamathoz felhasznált képet skálázza. A skálázas az eredeti kép felbontást \lstinline{1} értékkel nem változtatja, \lstinline{2} értékkel felére csökkenti azt, fordított arányosságnak megfelelően\cite{opencv_docs}. Ez a paraméter a folyamat lefutásának gyorsítását teszi lehetővé, azonban, akárcsak a jelenlegi esetben, kisebb körök detektálásához jobb az eredeti felbontás megtartása.
+\par A \lstinline{minRadius} (minimális sugár), \lstinline{maxRadius} (maximális sugár) és \lstinline{minDistance} (minimális távolság) paraméterek megadják a keresett körök tulajdonságait, így növelhető az algoritmus teljesítménye és csökkenthető a duplikációk előfordulása.
+\par A \lstinline{circleThreshold} paraméter az algoritmus kezdeti feldolgozó lépéseként végrehajtott Canny éldetektálás felső paraméterét adja meg, az alsó paraméter ennek felével lesz egyenlő. Ez a Canny éldetektálás a \ref{section:megv_asztal_kontur} alfejezetben megismert módszerrel megegyezően hajtódik végre. Végül pedig, a \lstinline{circlePerfectness} névvel ellátott paraméter a körkeresés pontosságát szabályozza, minél kisebb az érték, annál kisebb a pontosság, amely több hamisan felismert kört eredményezhet.
 \par A folyamat lefutása után a körök pozíciója és mérete ismeretében jelölni tudjuk őket a kivágott képen. Ezt szemlélteti a \ref{chapter:program_tervezes} fejezet \ref{fig:talalt_korok} ábrája.
 
 \section{A detektált körök osztályozása}
 
 \subsection{Osztályozás mintaillesztéssel}
-A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ez a \ref{for:cross_correlation} képletben látható\cite{kaehler2016learning, opencv_docs}.
+\label{subsection:mintaillesztes_osztalyozas}
+A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy végbe, ennek a működése a \ref{for:cross_correlation} képleten alapul\cite{kaehler2016learning, opencv_docs}.
 
 \begin{equation}
     R(x, y) = \frac{\sum_{x',y'}(T(x',y') \cdot I(x + x', y + y'))}{\sqrt{\sum_{x',y'}T(x',y')^2 \cdot \sum_{x',y'}I(x + x',y + y')^2}}
     \label{for:cross_correlation}
 \end{equation}
 
-\par A képletben az $x$ és $y$ az eredeti képen vizsgált terület bal felső sarkát, $x'$ és $y'$ a minta képnek az adott képpontját, $T$ a minta képet és $I$ az eredeti képet jelöli.
+\par A képletben az $x$ és $y$ az eredeti képen vizsgált terület bal felső sarkát, $x'$ és $y'$ a minta képnek az adott képpontját, $T$ a minta képet és $I$ az eredeti képet jelöli. Ez a folyamat egy kernelhez hasonlóan végigpásztázza a képet, majd a kapott érték mátrixból eldönthető, hogy mely pontokon volt a legnagyobb egyezés a mintával.
+\par Ebben az esetben viszont nem a teljes asztal képén vizsgálom a minta egyezését, hanem csak egy adott felismert körhöz tartozó metszeten. Ilyenkor a minta és a kép mérete megegyezik, ezért a kapott mártirxból a legnagyobb érték fogja reprezentálni az egyezőség mértékét. Ahhoz, hogy egy adott körnek meg lehessen állapítani a színét, az összes mintával hasonítani kell, majd a művelet végén a legnagyobb értékkel rendelkező illesztéshez tartozó minta színe fogja megadni a felismert kör színét. A \ref{fig:adatkeszlet} ábrán látható sárga golyóhoz hasonló adatra elvégzett mintaillesztés eredményeit a \ref{fig:mintaillesztes_eredmeny} ábra mutatja.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=140mm, keepaspectratio]{figures/match_values.png}
+    \caption{Egy sárga golyó kivágott képére elvégzett mintaillesztések eredményei.}
+    \label{fig:mintaillesztes_eredmeny}
+\end{figure}
+
+\par Az ábrán látható, hogy a mintaillesztés nehezen különbözteti meg az egyes színeket, szinte minden színhez 65\% -nál nagyobb megegyezési értékeket ad. Ez jól szemlélteti, hogy miért nem kerül közvetlen felhasználásra az alkalmazásban, azomban a adatkészlet készítéséhez felhasználható.
+\par A mintaillesztés az alkalmazásban a \ref{cod:template_match} kódrészlet formájában kerül felhasználásra.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={A mintaillesztés menete.}, label={cod:template_match}]
+if (hsvMode) {
+    cv::Mat templateHSV;
+    cv::cvtColor(templateBGR, templateHSV, cv::COLOR_BGR2HSV);
+    cv::matchTemplate(cutImageHSV, templateHSV, result, cv::TM_CCORR_NORMED);
+}
+else {
+    cv::matchTemplate(cutImageBGR, templateBGR, result, cv::TM_CCORR_NORMED);
+}
+
+double maxValue;
+cv::minMaxLoc(result, NULL, &maxValue);
+\end{lstlisting}
+\end{minipage}
+
+\par Itt a \lstinline{hsvMode} logikai változó megadja, hogy a mintaillesztést BGR vagy HSV színformátumban végezze el a kód. A HSV módban történő illesztésnél szimplán átkonvertálom a mintát HSV formátumra a már jól ismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs}, majd mind a két módban úgyanúgy végrehajtom a mintaillesztést a \lstinline{cv::matchTemplate} függvénnyel\cite{kaehler2016learning,opencv_docs}. A függvény a \ref{for:cross_correlation} egyenlet alapján számolja ki a minta egyezőségét egy adott pontban. Paraméterként meg kell adni neki a képet amelyre a mintát szeretnénk illeszteni (\lstinline{cutImageBGR} vagy \lstinline{cutImageHSV}), a mintát (\lstinline{templateHSV} vagy \lstinline{templateBGR}), a kimeneti változónkat, amely ebben az esetben a \lstinline{result} mátrix, továbbá meg kell adnunk a mintaillesztés algorimust, ezt a \lstinline{cv::TM_CCORR_NORMED} konstans teszi meg.
+\par A kapott mátrixból az egyezőséget reprezentáló értéket a \lstinline{cv::minMaxLoc} függvény\cite{opencv_docs} adja meg, ez a függvény kiszámolja, hogy a bemeneti mátrixon (\lstinline{result}) hol található és mennyi a minimum és maximum érték. Az egyezőség megállapításához ezesetben csak a maximum értékre van szükség, ezt a függvény harmadik paramétere adja meg \lstinline{maxValue} néven.
+\par A fenti folyamat egy körre írja le a minta illesztését, ezt ciklusban az alkalmazás végrehajtja minden potenciális goylót leíró körre.
 
 \subsection{Osztályozás neurális hálózattal}
+A neurális hálózattal való osztályozás hasonlóan megy végbe, minta az előző alfejezetben megismert mintaillesztes. Az osztályozáshoz szükség van egy betanított neurális hálózatra, amit be kell tölteni az alkalmazásba, majd továbbítani neki a kör kivágott képét. A kivágott képet átadás előtt viszont módosítani kell, mégpedig úgy, hogy megegyezzen a neurális háló kívánt bemenetével.
+\par Az általam használt modell bemenete egy olyan képet vár, amelynek hat intenzitásértéke van, azonban egy átlagos kivágott kép csupán három ilyen értékkel rendelkezik, ezek a BGR által reprezentált kék (blue), zöld (green) és piros (red) intenzitások, a másik három szükséges intenzitást a kép HSV értékei adják meg, ezek az árnyalat (hue), telítettség (saturation) és érték (value).
+\par A kép intenzitásait összefűzve, majd azt továbbítva a hálózatnak, a kapott érték egy normalizált értékek listája, ami megadja, hogy egyes színek mennyire jellemzik a bemeneti képet. A \ref{fig:mintaillesztes_eredmeny} ábrához hasonlóan látható egy sárga golyó neurális hálózatos osztályozásának eredménye a \ref{fig:neuralis_osztalyozas_eredmeny} ábrán. Az ábrán látható, hogy míg a sárga érték nem mutatható teljesen az ábra intervallumán, hisz megegyezése közel 100\% -os (99,46\%), addig a többi színhez tartozó megegyezési értékek 0.1\% alá esnek. Ez is mutatja, hogy a módszer rendkívül pontosan meg tudja jósolni egy potenciálisan felismert golyó színét.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=140mm, keepaspectratio]{figures/neural_values.png}
+    \caption{Egy sárga golyó kivágott képén neurális hálózattal történt becslés eredményei.}
+    \label{fig:neuralis_osztalyozas_eredmeny}
+\end{figure}
+
+\par A felismerés végrehajtásához használt kód a \ref{} kódrészletben látható.

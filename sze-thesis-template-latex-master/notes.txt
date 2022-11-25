@@ -4,6 +4,7 @@ snooker ismertetése
 
 használt szoftverek
     python?
+    c++?
     opencv
     tensorflow
 
@@ -14,15 +15,21 @@ a program megtervezése
         finding circles + template - no good
         nn + circle finding - lesgo
     analizálás
-        bruh aeugh
+        piros golyók problémája?
+        golyók útvonala
+        megtett távolság
+        sebesség
+        lelökés
 
 megvalósítás
     én módszerem
-    import - tensorflow kell még
+    import
     asztal keresés
     asztal kivágás
     golyó keresés
     golyó osztályozás
+    pozíciók megállapítása (piros golyók)
+    analízis 
 
 problémák
 összefoglalás

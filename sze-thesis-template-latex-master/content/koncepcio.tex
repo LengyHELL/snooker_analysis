@@ -1,6 +1,7 @@
 \chapter{A program megtervezése}
 \label{chapter:program_tervezes}
 \section{Az asztal felismerése}
+\label{section:asztal_felismeres}
 
 Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más mint az asztal, vagy más néven játékterület felismerése. A program ezen része bemenetként fog fogadni egy képet. Ez a kép származhat \textbf{videófelvételből} (videófelvétel egy képkockája), \textbf{valós idejű felvételből} (szintén egy képkocka), vagy szimplán egy \textbf{képfájlból}. A program bemutatásához egy felülnézetből készített snooker játszma felvételét fogom használni.
 \par Az asztalfelismerő lépés kicsit elkülönül a többi lépéstől, hiszen a további lépések különféle bemenetszerzési módszerektől függetlenül, megegyezően hajtódnak végre. Ahhoz hogy a további lépések pontosak legyenek és megfeleő teljesítménnyel működjenek, az asztalt mindig azonos méretben, elforgatásban és torzításban kell megkapniuk.
@@ -42,7 +43,7 @@ Ebben az alfejezetben a program első folyamatáról lesz szó, ami nem más min
     \label{fig:bemeneti_kep_mask}
 \end{figure}
 
-\par Az előző folyamat után már jól látható a játékterület, azonban vannak apró foltok amik nem kerületk maszkolásra. Ezek a foltok hasonló HSV értékekkel rendelkeznek, mint a játékterület, kiszűrésük megoldható a kontúrok megkeresésével, majd feltételezve, hogy a legnagyobb folt a maszkolt képen a játékterület, annak kiválasztásával. Ezzel az eljárással már megadható a játékterület kontúrja. Szintén feltételezve, hogy ez négy sarokpontból áll, és egy téglalap pontosan határolja, a játékterület képe \ref{fig:bemeneti_asztal2} megkapható a kontúr eredeti képből való kivágásával és átméretezésével.
+\par Az előző folyamat után már jól látható a játékterület, azonban vannak apró foltok amik nem kerültek maszkolásra. Ezek a foltok hasonló HSV értékekkel rendelkeznek, mint a játékterület, kiszűrésük megoldható a kontúrok megkeresésével, majd feltételezve, hogy a legnagyobb folt a maszkolt képen a játékterület, annak kiválasztásával. Ezzel az eljárással már megadható a játékterület kontúrja. Szintén feltételezve, hogy ez négy sarokpontból áll, és egy téglalap pontosan határolja, a játékterület képe \ref{fig:bemeneti_asztal2} megkapható a kontúr eredeti képből való kivágásával és átméretezésével.
 
 \begin{figure}[!ht]
     \centering
@@ -198,3 +199,57 @@ A mintaillesztés hibáinak kiküszöböléséhez, az osztályozás elvégezhet�
 \par A módszer eredményességének köszönhetően későbbiekben részletesebben ismertetem a megvalósítás fejezetben.
 
 \section{Analizálás}
+A golyók felismert pozíciója alapján a játékmenet többféle szempontból vizsgálható, ameyleknek köszönhetően érdekes statisztikai adatokhoz lehet jutni. A vizsgálati szempontok közül ebben a munkában négyfélét fogok megfigyelni, ezek az egyes golyók által \textbf{megtett távolság}, adott golyó \textbf{pillanatnyi sebessége}, a golyók \textbf{megtett útvonala} és a \textbf{zsebekben elhelyezett golyók megállapítása}.
+\par Az említett szempontok alapján más komplexebb tényezőket is lehet vizsgálni (pl.: átlagos sebesség, golyók lepattanásának száma stb.), itt viszont az egyszerűség kedvéért csak az alapvetőbb szempontokat vizsgálom.
+\par Ahhoz, hogy megtett utakat és sebességeket lehessen megállapítani, egy folytonos videófelvételre van szükség, a videófelvétel minősége és képkockasebessége is befolyásoló tényezők az adatok pontosságához és megállapításához.
+\par A következő alfejezetekben az egyes vizsgálati szempontokat részletezem, viszont mindenek előtt még egy fontos problémának a megoldását írom le a következő fejezetben.
+
+\subsection{A piros labdák felcímkézése}
+A felismert golyók pozíciója és színe nagyszerű kiindulópont az egyes színű golyók útvonalának megállapításához, azonban a piros golyók sajátossága, hogy több is szerepel belőlük a játékterületen. Ez a tulajdonság ahhoz vezet, hogy az egyes golyókat meg kell különböztetni valahogy egymástól, hogy például azok útvonalát el tudjuk tárolni.
+\par A probléma megoldására létezik egy elméletben viszonylag egyszerű megoldás, amely a következő lépésekből áll:
+
+\begin{itemize}
+    \item 1. Első felismerés során eltároljuk az egyes piros golyók címkéjét tetszés szerint.
+    \item 2. A következő felismerési folyamat során növekvő sorrendbe helyezzük az előzőleg és jelenleg felismert piros golyók egymástól viszonyított távolságát.
+    \item 3. Az előző lépésben kiszámolt listán sorban végighaladva beállítjuk a jelenlegi golyókhoz a címkét az előző golyók közül a hozzájuk legközelebb esővel.
+\end{itemize}
+
+\par A fenti módszer úgymond 'mohó' algoritmus, ezzel a számára legkedvezőbb feltételt választja minden esetben, feltételezve, hogy a golyók között a lehető legkisebb az összes elmozdulás. A módszer bizonytalannak tűnhet, azonban megfelelő minőségű videófelvétel mellett elfogadhatóan pontos eredményeket ad. A \ref{fig:felismert_asztal} ábrán látható felismert golyók ezen módszer segítségével lettek felcímkézve, és az alkalmazás megvalósításánál is a jelenlegi módszert alkalmazom.
+
+\subsection{Megtett távolság és útvonal}
+Ezt a két szempontot egy alfejezteben ismertetem, mert mindkettőjük megállapítása azonos és egyetlen alapon nyugszik, ez pedig nem más mint szimplán az adott golyók pozíciója.
+\par A teljes megtett távolság könnyen megállapítható a golyók két képkocka közti elmozdulásainak a felhalmozásával. Ahhoz viszont, hogy egy számunkra hétköznapokban is használt mértékegység formájában mutatkozzanak a távolságok, egy apró trükkre lesz szükség. A golyók elmozdulásai kezdetben megállapításkor képpont formájában szerepelnek, a \ref{section:asztal_felismeres} alfejezet tábla felismerés részénél tudjuk, hogy a felismeréshez használt asztal egy fix szélességre és magasságra van transzformálva. Ennek következtében megállapítható, hogy ha a transzformációs szélesség 1024 képpont és a szabvány snooker asztal mérete a \ref{section:snooker_altalanos} rész alapján 12 láb, avagy 365,8 cm, akkor a valóságban $1\text{ cm} = \frac{1024}{365,8} \approx 2.8\text{ képpont}$ formájában mérhető a transzformált képen.
+\par A megtett útvonal megállapításánál nincs szükség mértékegyésg átváltásokra, hiszen az útvonal csak a felismerés közben a transzformált asztalon kerül kirajzolásra. Az útvonal a egyes képkockákon, adott golyók pozíciójának folytonos listában való eltárolásával lehetséges. A tárolt listák közül egyet a \ref{fig:golyo_utvonal} ábrán látható módon lehet megjeleníteni a transzformált képen.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=110mm, keepaspectratio]{figures/ball_path.png}
+    \caption{A fehér golyó útvonala a felismert képen kék vonallal jelölve.}
+    \label{fig:golyo_utvonal}
+\end{figure}
+
+\subsection{A golyó sebessége}
+Ahhoz, hogy a golyó sebességét meg lehessen állapítani, két tényezőre van szükség, ezek a megtett távolság és az ezen távolság megtételéhez szükséges idő. A megtett távolságot már az előző alfejezetben leírtak alapján megállapítható, tehát csak az eltelt időt kell kiszámolni a sebesség megállapításához. Az eltelt időt a felvétel egy paramétere, a képkockasebesség alapján fogom kiszámolni.
+\par Ha a videófelvételről tudjuk, hogy a képkockasebessége 30 fps (másodpercenként 30 képkocka), vagy másnéven, két képkocka közt eltel idő $\frac{1}{30} \approx 0.03\text{ másodperc}$, és tudjuk, hogy két képkocka közt egy adott golyó elmozdulása például 3 képpont, vagy centiméterre átszámolva 1,07 cm, akkor a golyó sebessége $\frac{1,07}{0.03} \approx 35.67 \text{ cm/s}$.
+\par A sebességek értékét egy listában tárolva, azokat a felismerési folyamat végén összegezve, majd leosztva a lista hosszával, kiszámolható a felismerés időtartama alatt egy adott golyóhoz tartozó átlagos sebesség.
+
+\subsection{Zsebbe helyezés megállapítása}
+A zsebbe helyezett golyó megállapítása ugyancsak a golyó pozíciójának a segítségéval állapítható meg, azonban közre játszik a feilsmert golyó beazonosításának megszakadása, megszűnése is. A golyó azonosítása akkor szűnik meg, amikor a golyó olyan takarásba vagy árnyékba kerül, hogy annak a felismerését nem lehet többé végrehajtani. Amikor egy golyó felismerése megszűnik, két képkocka közt a felismert golyók száma közt eltérés lép fel, ez visszavezethető egy adott golyóra, és annak az utolsó ismert pozíciójára.
+\par Az eltűnt golyó utolsó pozíciójának ismeretében megvizsgálható annak a távolsága a zsebek pozíciójához viszonyítva. A zsebek pozíciója kiszámolható az előzőleg már említett transzformált kép tárolt fix szélesség és magasság értékeivel, hiszen a zsebek a négy sarkon és a hosszanti oldalak felénél helyezkednek el. A zsebek elhelyezkedését a \ref{tab:zsebek_kiszamolasa} táblázat szemlélteti.
+
+\begin{table}[!ht]
+    \caption{A zsebek elhelyezkedése szélesség és magasság alapján.}
+    \label{tab:zsebek_kiszamolasa}
+	\footnotesize
+	\centering
+	\begin{tabular}{ l l l l }
+		\toprule
+		(x, y)  & Bal           & Közép                                    & Jobb \\
+		\midrule
+		Alul    & (0, 0)        & ($\dfrac{\text{szélesség}}{2}$, 0)        & (szélesség, 0)\\
+		Felül   & (0, magasság) & ($\dfrac{\text{szélesség}}{2}$, magasság) & (szélesség, magasság)\\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\par Amennyiben a golyó utolsó ismert pozíciója elegendően közel van egy zseb pozíciójához, feltétlezhetjük, hogy a golyó az adott zsebben lett elhelyezve.
