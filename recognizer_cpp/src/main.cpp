@@ -11,7 +11,7 @@ void drawCurrentFrame(cv::Mat image, const int& currentFrame) {
 
 void drawBallData(cv::Mat& image, const BallData& ballData, const cv::Scalar& pathColor = cv::Scalar(255, 0, 0)) {
 	for (int i = 1; i < ballData.path.size(); i++) {
-		cv::line(image, ballData.path[i - 1], ballData.path[i], pathColor);
+		cv::line(image, ballData.path[i - 1], ballData.path[i], pathColor, 2);
 	}
 
 	cv::putText(image, "Distance:" + std::to_string(ballData.totalDistance), cv::Point(0, 35), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);

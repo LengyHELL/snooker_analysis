@@ -183,7 +183,6 @@ bool Recognition::cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage) {
         return false;
     }
 
-    std::vector<cv::Point> arrangedPoints;
     std::vector<int> sums, diffs;
 
     for (auto& point : quad) {
@@ -295,6 +294,12 @@ void Recognition::labelBallsWithTM(bool hsvMode = false) {
     }
 }
 
+auto comparatorByLabel(const BallLabel label) {
+    std::function<bool(const std::vector<float>&, const std::vector<float>&)> comparator;
+    comparator = [label](const auto& lhs, const auto& rhs) { return lhs[label] < rhs[label]; };
+    return comparator;
+}
+
 void Recognition::labelBallsWithNN() {
     fdeep::internal::tensors_vec inputs;
     float matchLimit = float(matchLimitRate) / 100;
@@ -328,32 +333,7 @@ void Recognition::labelBallsWithNN() {
         BallLabel ballLabel = static_cast<BallLabel>(type);
 
         if (ballLabel != BallLabel::RED) {
-            std::function<bool(const std::vector<float>&, const std::vector<float>&)> comparator;
-            switch(ballLabel) {
-                case BLACK:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[0] < rhs[0]; };
-                    break;
-                case BLUE:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[1] < rhs[1]; };
-                    break;
-                case BROWN:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[2] < rhs[2]; };
-                    break;
-                case GREEN:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[3] < rhs[3]; };
-                    break;
-                case PINK:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[4] < rhs[4]; };
-                    break;
-                case WHITE:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[6] < rhs[6]; };
-                    break;
-                case YELLOW:
-                    comparator = [](const auto& lhs, const auto& rhs) { return lhs[7] < rhs[7]; };
-                    break;
-            }
-            
-            int maxIndex = std::max_element(results.begin(), results.end(), comparator) - results.begin();
+            int maxIndex = std::max_element(results.begin(), results.end(), comparatorByLabel(ballLabel)) - results.begin();
             if ((results[maxIndex][type] > matchLimit) && (results[maxIndex][BallLabel::NONE] < noneLimit)) {
                 balls[maxIndex].label = static_cast<BallLabel>(type);
             }
@@ -547,7 +527,7 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
             continue;
         }
 
-        cv::rectangle(imageWarped, ball.getRect(), cv::Scalar(0, 0, 255));
+        cv::rectangle(imageWarped, ball.getRect(), cv::Scalar(0, 0, 255), 2);
         cv::putText(imageWarped, ball.getLabelString(), ball.getTopLeft(), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255));
     }
 
