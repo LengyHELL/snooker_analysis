@@ -15,7 +15,7 @@ a program megtervezése
         finding circles + template - no good
         nn + circle finding - lesgo
     analizálás
-        piros golyók problémája?
+        piros golyók problémája - maybe upper section
         golyók útvonala
         megtett távolság
         sebesség
@@ -28,8 +28,14 @@ megvalósítás
     asztal kivágás
     golyó keresés
     golyó osztályozás
-    pozíciók megállapítása (piros golyók)
-    analízis 
+        osztályozás tm
+        osztályozás nn
+    vizsgálati szempontok kiszámolása 
+        pozíciók megállapítása (piros golyók)
+        golyó útvonal
+        golyó megtett távolság
+        golyó sebesség
+        golyó lelökés
 
 problémák
 összefoglalás

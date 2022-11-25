@@ -401,4 +401,31 @@ A neurális hálózattal való osztályozás hasonlóan megy végbe, minta az el
     \label{fig:neuralis_osztalyozas_eredmeny}
 \end{figure}
 
-\par A felismerés végrehajtásához használt kód a \ref{} kódrészletben látható.
+\par A felismerés végrehajtásához használt kód a \ref{cod:neural_predict} kódrészletben látható.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={A neurális hálóval történő osztályozás menete.}, label={cod:neural_predict}]
+std::vector<cv::Mat> channels = {cutImageBGR, cutImageHSV};
+cv::Mat mixed;
+cv::merge(channels, mixed);
+
+fdeep::tensor input = fdeep::tensor_from_bytes(
+    mixed.ptr(),
+    static_cast<std::size_t>(mixed.rows),
+    static_cast<std::size_t>(mixed.cols),
+    static_cast<std::size_t>(mixed.channels()),
+    0.0f,
+    1.0f
+);
+
+std::vector<float> result = model.predict(input).to_vector();
+\end{lstlisting}
+\end{minipage}
+
+\par A \ref{cod:neural_predict} kódrészletben elsősorban a kép intenzitás érékeit fűzzük össze, ezt a \lstinline{cv::merge} függvény\cite{opencv_docs} teszi meg, ami bemenetként kéri a két képet (BGR és HSV) egy tömb formájában, a kimenetet pedig a \lstinline{mixed} változóba teszi bele.
+\par A hat színcsatornával rendelkező \lstinline{mixed} mátrixot ezekután egy ún. tensor típusra kell átalakítani, amelyet a neurális hálózat közvetlenül kezelni tud. Az átalakításhoz a \lstinline{fdeep::tensor_from_bytes} függvény\cite{frugally_deep2016} szükséges, amelynek paraméterként át kell adni a mátrixunk memóriacímének mutatóját (\lstinline{mixed.ptr()}), ez alapján tudja megállapítani a függvény az adatok helyzetét a memóriában, továbbá még át kell adni a mátrix szélességét (\lstinline{mixed.cols}), magasságát (\lstinline{mixed.rows}) és a színcsatornák számát (\lstinline{mixed.channels}). Az utolsó két paraméter megadja, hogy az intenzitás értékek 0 és 1 értékek közé legyenek skálázva. Ez egy 0 és 255 értékek között mozgó intenzitásnál, például 130, $\frac{130}{255} \approx 0.51$ értéket jelent.
+\par A tensor-ra alakítás után a \lstinline{model.predict} függvénnyel\cite{frugally_deep2016} lehet a hálózat jóslását elvégezni, amely kimenete a \lstinline{result} változóba kerül. A kimenet egy lebegőpontos értékek tömbje lesz, ennek elemei adják meg, hogy egyes színek mennyire jellemzik az osztályozott képet. A legnagyobb tömb elemhez tartozó index jelöli a jósolt színt, hasonlóan az előző \ref{subsection:mintaillesztes_osztalyozas} alfejezetben megismert mintaillesztéshez.
+
+\section{Játékmenet vizsgálati szempontok kiszámolása}
