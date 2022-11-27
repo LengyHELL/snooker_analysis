@@ -21,6 +21,36 @@ Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programna
 
 \par Az \lstinline{opencv.hpp} könyvtár az OpenCV által biztosított képfeldolgozási függvényeket biztosítja, a \lstinline{fdeep.hpp} könyvtár pedig a Tensorflow -al készített neurális hálózat betöltését teszi lehetővé.
 
+\section{Egyénileg készített osztályok és struktúrák}
+\label{section:classes_and_structs}
+Ebben a részletben szeretném ismertetni a további részekben szereplő kódrészletben felbukkanó osztályokat és struktúrákat. Ezeket az objektumokat könnyebb felhasználás és átláthatóság szempontjából készítettem, hogy felgyorsítsam és megkönnyítsem a program olvashatóságát és megérthetőségét.
+\par Az első ilyen objektum egy enum \textbf{\lstinline{BallLabel}} névvel, ez az enum a golyók lehetséges színét tárolja. Enum formájában megelőzhető sztringek és szimpla egész számok használata, amelyek hosszú távon hibákhoz és bonyodalmakhoz vezethetnek. Az enum felépítése a \ref{fig:balllabel_enum} ábrán látható.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=40mm, keepaspectratio]{figures/balllabel_enum.png}
+    \caption{A \textbf{\lstinline{BallLabel}} enum felépítése.}
+    \label{fig:balllabel_enum}
+\end{figure}
+
+\par A következő osztály a játék során használt golyók reprezentálására szolgál, ez az osztály a \textbf{\lstinline{Ball}} nevet kapta. Az osztály tárolja egy adott golyó elhelyezkedését (\lstinline{x, y}), sugarát (\lstinline{radius}), a címkéjét és azonosítóját (\lstinline{label, id}), továbbá \lstinline{cut} néven egy képet amely a golyó asztalról kivágott képét tárolja. A \lstinline{getCenter} függvény a golyó pozícióját adja vissza egy \lstinline{cv::Point} típus\cite{opencv_docs} formájában, amely egy koordináta pontot ad meg. Az osztály felépítése a \ref{fig:ball_class} ábrán látható.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=40mm, keepaspectratio]{figures/ball_class.png}
+    \caption{A \textbf{\lstinline{Ball}} osztály felépítése.}
+    \label{fig:ball_class}
+\end{figure}
+
+\par Kifejezetten a piros golyók felcímkézéséhez készült az alábbi \ref{fig:ballmovement_struct} ábrán látható \textbf{\lstinline{BallMovement}} struktúra, ez tárolja a piros golyók összehasonlításához szükséges távolságot (\lstinline{distance}) és azonosítókat 
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=40mm, keepaspectratio]{figures/ballmovement_class.png}
+    \caption{A \textbf{\lstinline{BallMovement}} struktúra felépítése.}
+    \label{fig:ballmovement_struct}
+\end{figure}
+
 \section{Az asztal kontúrjának megkeresése}
 \label{section:megv_asztal_kontur}
 A nyers képből a játékterület megszerzéséhez azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
@@ -390,7 +420,7 @@ cv::minMaxLoc(result, NULL, &maxValue);
 \par A fenti folyamat egy körre írja le a minta illesztését, ezt ciklusban az alkalmazás végrehajtja minden potenciális goylót leíró körre.
 
 \subsection{Osztályozás neurális hálózattal}
-A neurális hálózattal való osztályozás hasonlóan megy végbe, minta az előző alfejezetben megismert mintaillesztes. Az osztályozáshoz szükség van egy betanított neurális hálózatra, amit be kell tölteni az alkalmazásba, majd továbbítani neki a kör kivágott képét. A kivágott képet átadás előtt viszont módosítani kell, mégpedig úgy, hogy megegyezzen a neurális háló kívánt bemenetével.
+A neurális hálózattal való osztályozás hasonlóan megy végbe, mint az előző alfejezetben megismert mintaillesztes. Az osztályozáshoz szükség van egy betanított neurális hálózatra, amit be kell tölteni az alkalmazásba, majd továbbítani neki a kör kivágott képét. A kivágott képet átadás előtt viszont módosítani kell, mégpedig úgy, hogy megegyezzen a neurális háló kívánt bemenetével.
 \par Az általam használt modell bemenete egy olyan képet vár, amelynek hat intenzitásértéke van, azonban egy átlagos kivágott kép csupán három ilyen értékkel rendelkezik, ezek a BGR által reprezentált kék (blue), zöld (green) és piros (red) intenzitások, a másik három szükséges intenzitást a kép HSV értékei adják meg, ezek az árnyalat (hue), telítettség (saturation) és érték (value).
 \par A kép intenzitásait összefűzve, majd azt továbbítva a hálózatnak, a kapott érték egy normalizált értékek listája, ami megadja, hogy egyes színek mennyire jellemzik a bemeneti képet. A \ref{fig:mintaillesztes_eredmeny} ábrához hasonlóan látható egy sárga golyó neurális hálózatos osztályozásának eredménye a \ref{fig:neuralis_osztalyozas_eredmeny} ábrán. Az ábrán látható, hogy míg a sárga érték nem mutatható teljesen az ábra intervallumán, hisz megegyezése közel 100\% -os (99,46\%), addig a többi színhez tartozó megegyezési értékek 0.1\% alá esnek. Ez is mutatja, hogy a módszer rendkívül pontosan meg tudja jósolni egy potenciálisan felismert golyó színét.
 
@@ -429,3 +459,24 @@ std::vector<float> result = model.predict(input).to_vector();
 \par A tensor-ra alakítás után a \lstinline{model.predict} függvénnyel\cite{frugally_deep2016} lehet a hálózat jóslását elvégezni, amely kimenete a \lstinline{result} változóba kerül. A kimenet egy lebegőpontos értékek tömbje lesz, ennek elemei adják meg, hogy egyes színek mennyire jellemzik az osztályozott képet. A legnagyobb tömb elemhez tartozó index jelöli a jósolt színt, hasonlóan az előző \ref{subsection:mintaillesztes_osztalyozas} alfejezetben megismert mintaillesztéshez.
 
 \section{Játékmenet vizsgálati szempontok kiszámolása}
+\subsection{A piros labdák megkülönböztetése}
+A piros labdák megkülönböztetéséhez azoknak a szín mellett adni kell egy másodlagos azonosító paramétert, ez az alkalmazásban azonosító számok formájában történik, a számok 0 és 14 (15db) között helyezkedhetnek el. A piros golyók beazonosításához a \ref{subsection:piros_labda_cimke} részben ismertetett módszereket fogom használni, amelyhez először kiszámolom minden a frissen felismert és az előzőleg felismert piros golyók közt a távolságot. A távolság kiszámolásához használt kód a \ref{cod:red_ball_distance} kódrészletet használom.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolság kiszámolása.}, label={cod:red_ball_distance}]
+std::vector<BallMovement> movements;
+
+for (Ball& ball : balls) {
+    for (Ball& previousBall : previousBalls) {
+        if (ball.label == BallLabel::RED && previousBall.label == BallLabel::RED) {
+            float d = cv::norm(ball.getCenter() - previousBall.getCenter());
+            movements.push_back({d, &ball.id, &previousBall.id});
+        }
+    }
+}
+\end{lstlisting}
+\end{minipage}
+
+\par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el tudjuk érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
