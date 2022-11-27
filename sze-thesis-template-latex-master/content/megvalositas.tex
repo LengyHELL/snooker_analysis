@@ -480,3 +480,63 @@ for (Ball& ball : balls) {
 \end{minipage}
 
 \par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el tudjuk érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
+\par A tömb elkészítése után az algoritmus további részei előtt sorba kell rendezni az értékeket távolságok szerint. A sorba rendezést a \ref{cod:red_ball_sort} kódrészlet mutatja, a kódrészletben használt összehasonlító segédfüggvényt pedig a \ref{cod:red_ball_sort_helper} kódrészlet ábrázolja.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolságok sorba rendezése.}, label={cod:red_ball_sort}]
+std::sort(movements.begin(), movements.end(), distanceComparator);
+\end{lstlisting}
+\end{minipage}
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_sort_helper}]
+bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
+    return lhs.distance < rhs.distance;
+}
+\end{lstlisting}
+\end{minipage}
+
+\par Az összehasonlító segédfüggvény a \lstinline{BallMovement} osztály \lstinline{distance} paraméterét használja összehasonlítási alapnak.
+\par A következő lépés a folyamat legkomplexebb része, ez a rész legfőképp egy ciklusból áll, amivel végighalad az algoritmus a sorba rendezett \lstinline{movements} tömbön és megvizsgálja, hogy az adott elemhez tartozó azonosítók renezésre kerültek-e. A ciklus és vizsgálat rész a \ref{cod:red_ball_set_cycle} kódrészletben látható.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_set_cycle}]
+std::vector<int*> setPrevious;
+std::vector<int*> setCurrent;
+for (const auto& movement : movements) {
+    if (std::count(setPrevious.begin(), setPrevious.end(), movement.previousId) <= 0 &&
+        std::count(setCurrent.begin(), setCurrent.end(), movement.currentId) <= 0) {
+            ...
+        }
+    }
+}
+\end{lstlisting}
+\end{minipage}
+
+\par A ciklus kezdete előtt elhelyezkedő \lstinline{setPrevious} és \lstinline{setCurrent} változók tárolják azon golyók azonosítójának listáját amelyek már beállításra kerültek a folyamat során. A beállítottság állapotának vizsgálata az \lstinline{if} állításban látható, itt az \lstinline{std::count} függvény segítségével ellenőrizhető, hogy a ciklus adott eleméhez (\lstinline{movement}) tartozó azonosítók közül valamelyik megtalálható-e a beállított azonosítók közt. Amennyiben nem található meg, lefut az algoritmus belső része, ez a \ref{cod:red_ball_set_switch} kódrészletben látható.
+
+\vspace{2mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={A piros golyók azonosítójának beállítása.}, label={cod:red_ball_set_switch}]
+for (int i = 0; i < movements.size(); i++) {
+    if (*movements[i].currentId == *movement.previousId) {
+        *movements[i].currentId = *movement.currentId;
+    }
+}
+
+*movement.currentId = *movement.previousId;
+
+setPrevious.push_back(movement.previousId);
+setCurrent.push_back(movement.currentId);
+\end{lstlisting}
+\end{minipage}
+
+\par Itt egyértelműnek tűnhet, mivel feltételezhetően az elmozdulás ugyanazon golyót írja le két különböző időpillanatban, hogy szimplán át kell állítani a jelenlegi azonosítót (\lstinline{movement.currentId}) az előző azonosítóra (\lstinline{movement.previousId}), viszont az elmozdulások listájában szerepelhetnek még olyan elemek, amelyeknél a jelenlegi azonosító (\lstinline{movements[i].currentId}) megegyezik az általunk beállítani kívánt azonosítóval (\lstinline{movement.previousId}), ezért le kell ellenőrizni, hogy az elmozdulások közt létezik-e ilyen elem, majd annak azonosítóját kicserélni a vizsgált elemünk jelenlegi azonosítójával. Ez az ellenőrzés a kód 1. - 5. soraiban történik egy ciklus formájában, majd a 7. sorban kerül beállításra az adott elem jelenlegi azonosítója.
+\par Az előző lépés bonyolultnak tűnhet, viszont lényegében egy cserét hajt végre az algoritmus az előzőleg és a jelenleg meghatározott azonosítóval rendelkező elemek közt. A folyamat végeztével mind a jelenlegi, mind az előző azonosító bekerül a számukra megfelelő ellenőrzött elemek listájába a 9. és 10. sorban látható módon.
