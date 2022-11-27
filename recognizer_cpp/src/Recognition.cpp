@@ -106,15 +106,14 @@ std::vector<cv::Point> Recognition::contourToQuad(const std::vector<cv::Point>& 
     return quadPoints; */
 }
 
-bool Recognition::getRedBall(const int& id, Ball*& redBall, std::vector<Ball>& balls) {
+Ball* Recognition::getRedBall(const int& id, std::vector<Ball>& balls) {
     for (auto& ball : balls) {
         if (ball.label == BallLabel::RED && ball.id == id) {
-            redBall = &ball;
-            return true;
+            return &ball;
         }
     }
 
-    return false;
+    return nullptr;
 }
 
 void Recognition::findTable(const cv::Mat& image) {
@@ -481,28 +480,25 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
         if (std::count(setPrevious.begin(), setPrevious.end(), movement.previousId) <= 0 &&
             std::count(setCurrent.begin(), setCurrent.end(), movement.currentId) <= 0) {
 
-            Ball* withCurrentId;
-            Ball* withPreviousId;
+            // Ball* withCurrentId = getRedBall(*movement.currentId, balls);
+            // Ball* withPreviousId = getRedBall(*movement.previousId, balls);
 
-            // switching ids in balls vector
-            if (getRedBall(*movement.currentId, withCurrentId, balls)) {
-                if (getRedBall(*movement.previousId, withPreviousId, balls)) {
+            /* // switching ids in balls vector
+            if (withCurrentId != nullptr) {
+                if (withPreviousId != nullptr) {
                     withPreviousId->id = *movement.currentId;
                 }
 
                 withCurrentId->id = *movement.previousId;
 
                 // checking for jump spikes in red balls
-                Ball* previousBall;
+                Ball* previousBall = getRedBall(*movement.currentId, previousBalls);
 
-                if (((movement.distance) > maxBallJump) &&
-                    getRedBall(*movement.currentId, previousBall, previousBalls)) {
-
+                if (((movement.distance) > maxBallJump) && (previousBall != nullptr)) {
                     withCurrentId->x = previousBall->x;
                     withCurrentId->y = previousBall->y;
                 }
-            }
-
+            } */
 
             // switching ids in movements vector
             for (int i = 0; i < movements.size(); i++) {
@@ -520,9 +516,7 @@ void Recognition::processFrameWithNN(const cv::Mat& videoFrame) {
 
     for (const auto& ball : balls) {
         ballData[{ball.id, ball.label}].addPosition(ball.getCenter(), processedFramePosition);
-    }
 
-    for (const auto& ball : balls) {
         if (ball.label == BallLabel::NONE) {
             continue;
         }

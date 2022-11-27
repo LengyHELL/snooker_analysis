@@ -86,7 +86,7 @@ class Recognition {
 
 	static std::vector<cv::Point> contourToQuad(const std::vector<cv::Point>& contour);
 
-	bool getRedBall(const int& id, Ball*& redBall, std::vector<Ball>& balls);
+	Ball* getRedBall(const int& id, std::vector<Ball>& balls);
 	void findTable(const cv::Mat& image);
 	bool cutAndWarp(const cv::Mat& image, cv::Mat& warpedImage);
 	void findBalls(const cv::Mat& image);
