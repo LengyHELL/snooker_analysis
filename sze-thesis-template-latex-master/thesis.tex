@@ -54,7 +54,17 @@
 %\setstretch{1.5} % sorköz beállítása
 %\spacing{1.5}
 %\linespread{1.25}
-%\onehalfspacing
+\onehalfspacing
+
+\makeatletter %setting inline code style
+\lstdefinestyle{mystyle}{
+  basicstyle=%
+    \ttfamily
+    \lst@ifdisplaystyle\scriptsize\fi
+}
+\makeatother
+\lstset{style=mystyle}
+
 \begin{document}
 
 %TODO Feladatkiíró lap helye, csak a nyomtatott verzijóba kerül az eredeti példány

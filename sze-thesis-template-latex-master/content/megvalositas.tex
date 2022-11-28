@@ -10,7 +10,7 @@ A felismerő program megvalósítása során az eddig megismert módszereket fog
 Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programnak, hogy használja a külső könyvtárakat.
 \newline A legfontosabb könyvtárak importálása a \ref{cod:import} kódsorok alapján tehető meg.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Könyvtárak importálása.}, label={cod:import}]
@@ -51,6 +51,15 @@ Ebben a részletben szeretném ismertetni a további részekben szereplő kódr�
     \label{fig:ballmovement_struct}
 \end{figure}
 
+\par A \lstinline{BallMovement} osztályhoz hasonlóan létezik egy ún. \textbf{\lstinline{BallData}} osztály, amely arra szolgál, hogy a golyókon megvizsgált vizsgálati szempontokat eltárolja és kiszámolja. Ilyen szempontok a \ref{section:analyze_gameplay} részben említett elemzési szempontok, ezek közül a teljes megtett távolságot a \lstinline{totalDistance}, az útvonalat a \lstinline{path} és a pillanatnyi sebességeket a \lstinline{speed} változók tárolják. Az osztály része még a \lstinline{previousUpdateFrame} változó, ez eltárolja az adott golyóhoz a legutóbbi frissítés időpontját képkocka formájában, amelyet az \lstinline{addPosition} függvény felhasznál a két frissítés közt eltelt idő megállapítására, továbbáa az előzőekben említett változókat is beállítja vagy frissíti. A \textbf{\lstinline{BallData}} osztály felépítése a \ref{fig:balldata_class} ábrán látható.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=40mm, keepaspectratio]{figures/balldata_class.png}
+    \caption{A \textbf{\lstinline{BallData}} osztály felépítése.}
+    \label{fig:balldata_class}
+\end{figure}
+
 \section{Az asztal kontúrjának megkeresése}
 \label{section:megv_asztal_kontur}
 A nyers képből a játékterület megszerzéséhez azt először be kell tölteni egy többdimenziós tömbbe. A kép betöltése többféleképp végbemehet, ezért ezt konkrétan nem részletezem.
@@ -60,7 +69,7 @@ A nyers képből a játékterület megszerzéséhez azt először be kell tölte
 \newline A fentieket a \ref{cod:maszk} kódrészlettel végzem el.
 
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A játékterület maszkolása.}, label={cod:maszk}]
@@ -130,7 +139,7 @@ cv::bitwise_and(image, image, result, mask);
 \par ahol $R$ a kimenő maszkolt kép (\lstinline{result}) $S_1$ és $S_2$ a két bemeneti kép paraméter, és $M$ a maszk. A bemenetben a kép azért szerepel kétszer egymás után, mert a \ref{for:maszk_alkalmazas} függvényben láthatóan a két bemenő paraméter közt egy bit szintű 'és' művelet történik, amennyiben a maszk nem nulla. Ennek eredményeképp az eredeti kép adódik vissza amelyen maszkolt képpontok feketével szerepelnek. Ez azért történik, mert bit szinten ha két megegyező elem közt történik 'és' művelet, akkor az eredmény szintén megegyezik a két elemmel. Ennek a folyamatnak a kimenetele látható a már előzőleg tárgyalt \ref{fig:bemeneti_kep_mask} ábrán.
 \par A maszkolt kép megszerzése után elvégezhető az éldetektálás, amelyet megelőz egy szürkeárnyalatolás.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Szürkeárnyalatolás és éldetektálás.}, label={cod:gray_and_canny}]
@@ -162,7 +171,7 @@ cv::Canny(imageGray, edges, 200, 100);
 
 \par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszem a konvex körvonalát, azok egyszerűsítése, esetleges konkáv alakzatok megszüntetése érdekében. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, az kiválasztható a körvonalak közül.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Kontúrok keresése.}, label={cod:contours}]
@@ -178,7 +187,7 @@ std::sort(contours.begin(), contours.end(), areaComparator);
 \end{lstlisting}
 \end{minipage}
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Sorba rendezéshez használt segédfüggvény.}, label={cod:contours_helper}]
@@ -236,7 +245,7 @@ bool areaComparator(const std::vector<cv::Point>& lhs, const std::vector<cv::Poi
 \par ahol a \ref{for:vector_intersection_denominator} képletben a $D$ a \ref{for:vector_intersection_point_x} és \ref{for:vector_intersection_point_y} képletekben a nevező kiszámolásához biztosít könnyebb átláthatóságot, $(P_x, P_y)$ a kiszámolt metszéspont, $(x_1, y_1)$, $(x_2, y_2)$, $(x_3, y_3)$ és $(x_4, y_4)$ pedig a négy pont, amelyek a két egyenest határozzák meg, itt ezek közül az első kettő az egyik, a második kettő a másik egyeneshez tartozik.
 \par A fenti egyenletek megvalósítása a \ref{cod:intersection} kódrészletben látható,
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Metszéspont kereső algoritmus.}, label={cod:intersection}]
@@ -274,7 +283,7 @@ Ahhoz, hogy az asztal a kontúr segítségével kivágható legyen a képből, s
 \par A folyamat első részeként a kapott, négy koordinátából álló kontúr pontjait rendezni kell. A pontokat bal felső, jobb felső, jobb alsó és bal alsó pontok szerint kell sorba rendezni.
 \newline Az átrendezéshez a \ref{cod:atrendezes} kódot használom,
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Átrendező algoritmus.}, label={cod:atrendezes}]
@@ -297,7 +306,7 @@ src.push_back(quad[std::max_element(diffs.begin(), diffs.end()) - diffs.begin()]
 \par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükség van még a célértékekre is.
 \newline A célértékek a \ref{cod:destination} kód soraival adhatóak meg,
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A kimeneti értékek megadása.}, label={cod:destination}]
@@ -317,7 +326,7 @@ dst.push_back(cv::Point(0, height));
 \par A transzformáció végrehajtásához mindezek után már csak a transzformációs mátrix elkészítésére van szükség, majd a transzformáció végrehajtására.
 \newline Ezek a \ref{cod:pers_transform} kódrészlettel hajthatóak végre,
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A transzformáció végrehajtása.}, label={cod:pers_transform}]
@@ -341,7 +350,7 @@ A körök detektálásához az ún. Hough transzformációt (Hough Transformatio
 \par Az algoritmus lefutása után a metszéspontok megadják az egyes körök pozícióját, amelyeket könnyedén tárolni lehet egy listában.
 \par A körkereső algoritmus a programkód formájában a \ref{cod:hough_circle} kódrészletben látható.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A körkereső algoritmus.}, label={cod:hough_circle}]
@@ -397,7 +406,7 @@ A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy v
 \par Az ábrán látható, hogy a mintaillesztés nehezen különbözteti meg az egyes színeket, szinte minden színhez 65\% -nál nagyobb megegyezési értékeket ad. Ez jól szemlélteti, hogy miért nem kerül közvetlen felhasználásra az alkalmazásban, azomban a adatkészlet készítéséhez felhasználható.
 \par A mintaillesztés az alkalmazásban a \ref{cod:template_match} kódrészlet formájában kerül felhasználásra.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A mintaillesztés menete.}, label={cod:template_match}]
@@ -433,7 +442,7 @@ A neurális hálózattal való osztályozás hasonlóan megy végbe, mint az el�
 
 \par A felismerés végrehajtásához használt kód a \ref{cod:neural_predict} kódrészletben látható.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A neurális hálóval történő osztályozás menete.}, label={cod:neural_predict}]
@@ -458,11 +467,11 @@ std::vector<float> result = model.predict(input).to_vector();
 \par A hat színcsatornával rendelkező \lstinline{mixed} mátrixot ezekután egy ún. tensor típusra kell átalakítani, amelyet a neurális hálózat közvetlenül kezelni tud. Az átalakításhoz a \lstinline{fdeep::tensor_from_bytes} függvény\cite{frugally_deep2016} szükséges, amelynek paraméterként át kell adni a mátrixunk memóriacímének mutatóját (\lstinline{mixed.ptr()}), ez alapján tudja megállapítani a függvény az adatok helyzetét a memóriában, továbbá még át kell adni a mátrix szélességét (\lstinline{mixed.cols}), magasságát (\lstinline{mixed.rows}) és a színcsatornák számát (\lstinline{mixed.channels}). Az utolsó két paraméter megadja, hogy az intenzitás értékek 0 és 1 értékek közé legyenek skálázva. Ez egy 0 és 255 értékek között mozgó intenzitásnál, például 130, $\frac{130}{255} \approx 0.51$ értéket jelent.
 \par A tensor-ra alakítás után a \lstinline{model.predict} függvénnyel\cite{frugally_deep2016} lehet a hálózat jóslását elvégezni, amely kimenete a \lstinline{result} változóba kerül. A kimenet egy lebegőpontos értékek tömbje lesz, ennek elemei adják meg, hogy egyes színek mennyire jellemzik az osztályozott képet. A legnagyobb tömb elemhez tartozó index jelöli a jósolt színt, hasonlóan az előző \ref{subsection:mintaillesztes_osztalyozas} alfejezetben megismert mintaillesztéshez.
 
-\section{Játékmenet vizsgálati szempontok kiszámolása}
+\section{Játékmenet vizsgálati szempontok}
 \subsection{A piros labdák megkülönböztetése}
 A piros labdák megkülönböztetéséhez azoknak a szín mellett adni kell egy másodlagos azonosító paramétert, ez az alkalmazásban azonosító számok formájában történik, a számok 0 és 14 (15db) között helyezkedhetnek el. A piros golyók beazonosításához a \ref{subsection:piros_labda_cimke} részben ismertetett módszereket fogom használni, amelyhez először kiszámolom minden a frissen felismert és az előzőleg felismert piros golyók közt a távolságot. A távolság kiszámolásához használt kód a \ref{cod:red_ball_distance} kódrészletet használom.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolság kiszámolása.}, label={cod:red_ball_distance}]
@@ -482,7 +491,7 @@ for (Ball& ball : balls) {
 \par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el tudjuk érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
 \par A tömb elkészítése után az algoritmus további részei előtt sorba kell rendezni az értékeket távolságok szerint. A sorba rendezést a \ref{cod:red_ball_sort} kódrészlet mutatja, a kódrészletben használt összehasonlító segédfüggvényt pedig a \ref{cod:red_ball_sort_helper} kódrészlet ábrázolja.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolságok sorba rendezése.}, label={cod:red_ball_sort}]
@@ -490,7 +499,7 @@ std::sort(movements.begin(), movements.end(), distanceComparator);
 \end{lstlisting}
 \end{minipage}
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_sort_helper}]
@@ -503,7 +512,7 @@ bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
 \par Az összehasonlító segédfüggvény a \lstinline{BallMovement} osztály \lstinline{distance} paraméterét használja összehasonlítási alapnak.
 \par A következő lépés a folyamat legkomplexebb része, ez a rész legfőképp egy ciklusból áll, amivel végighalad az algoritmus a sorba rendezett \lstinline{movements} tömbön és megvizsgálja, hogy az adott elemhez tartozó azonosítók renezésre kerültek-e. A ciklus és vizsgálat rész a \ref{cod:red_ball_set_cycle} kódrészletben látható.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_set_cycle}]
@@ -521,7 +530,7 @@ for (const auto& movement : movements) {
 
 \par A ciklus kezdete előtt elhelyezkedő \lstinline{setPrevious} és \lstinline{setCurrent} változók tárolják azon golyók azonosítójának listáját amelyek már beállításra kerültek a folyamat során. A beállítottság állapotának vizsgálata az \lstinline{if} állításban látható, itt az \lstinline{std::count} függvény segítségével ellenőrizhető, hogy a ciklus adott eleméhez (\lstinline{movement}) tartozó azonosítók közül valamelyik megtalálható-e a beállított azonosítók közt. Amennyiben nem található meg, lefut az algoritmus belső része, ez a \ref{cod:red_ball_set_switch} kódrészletben látható.
 
-\vspace{2mm}
+\vspace{5mm}
 \hspace{-10mm}
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language=C++, numbers=left, caption={A piros golyók azonosítójának beállítása.}, label={cod:red_ball_set_switch}]
@@ -540,3 +549,36 @@ setCurrent.push_back(movement.currentId);
 
 \par Itt egyértelműnek tűnhet, mivel feltételezhetően az elmozdulás ugyanazon golyót írja le két különböző időpillanatban, hogy szimplán át kell állítani a jelenlegi azonosítót (\lstinline{movement.currentId}) az előző azonosítóra (\lstinline{movement.previousId}), viszont az elmozdulások listájában szerepelhetnek még olyan elemek, amelyeknél a jelenlegi azonosító (\lstinline{movements[i].currentId}) megegyezik az általunk beállítani kívánt azonosítóval (\lstinline{movement.previousId}), ezért le kell ellenőrizni, hogy az elmozdulások közt létezik-e ilyen elem, majd annak azonosítóját kicserélni a vizsgált elemünk jelenlegi azonosítójával. Ez az ellenőrzés a kód 1. - 5. soraiban történik egy ciklus formájában, majd a 7. sorban kerül beállításra az adott elem jelenlegi azonosítója.
 \par Az előző lépés bonyolultnak tűnhet, viszont lényegében egy cserét hajt végre az algoritmus az előzőleg és a jelenleg meghatározott azonosítóval rendelkező elemek közt. A folyamat végeztével mind a jelenlegi, mind az előző azonosító bekerül a számukra megfelelő ellenőrzött elemek listájába a 9. és 10. sorban látható módon.
+
+\subsection{Az elemzési szempontok kiszámolása}
+A \textbf{távolságok, útvonalak és pillanatnyi sebesség kiszámolását} a \ref{section:classes_and_structs} részben ismertetett \lstinline{BallLabel} osztály \lstinline{addPosition} függvénye (bővebben \ref{section:classes_and_structs} rész) végzi el, az útvonalakat a \ref{cod:calculate_analyzed} kódrészletben látható módon számolja ki.
+
+\vspace{5mm}
+\hspace{-10mm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=C++, numbers=left, caption={Egy golyó megtett távolságának, útvonalának és sebességének kiszámolása.}, label={cod:calculate_analyzed}]
+void addPosition(const cv::Point& newPosition, const int& framePosition) {
+    if (path.empty() || speed.empty()) {
+        speed.push_back(0);
+        path.push_back(newPosition);
+    }
+    else {
+        if (framePosition <= previousUpdateFrame) {
+            return;
+        }
+        float distance = cv::norm(newPosition - path.back());
+        float time = framePosition - previousUpdateFrame;
+
+        totalDistance += distance;
+        speed.push_back(distance / time);
+        path.push_back(newPosition);
+    }
+    
+    previousUpdateFrame = framePosition;
+}
+\end{lstlisting}
+\end{minipage}
+
+\par Az \lstinline{addPosition} függvény bemenetként megkapja a frissített golyó pozícióját (\lstinline{newPosition}) és a feldolgozott videó pillanatnyi képkockáját (\lstinline{framePosition}). A belső részben található egy \lstinline{if} állítás, itt ellenőrzésre kerül, hogy az adott golyóhoz tartozó adatok rendelkeznek-e értékkel, amennyiben nem, kezdő értékek lesznek hozzáadva mind a \lstinline{speed}, mind a \lstinline{path} tömbökhöz, ez a 3. és 4. sorokban látható. Abban az esetben amikor már léteznek a kezdeti elemek, az \lstinline{else} ágban első sorokban (7. - 9.) ellenőrzésre kerül, hogy a jelenlegi képkocka megegyezik-e a következő képkockával, ha megegyezik, akkor a függvény automatikusan visszatér új elemek hozzáadása nélkül, ha nem egyezik meg, akkor elkezdődik az egyes szempontok kiszámolása.
+\par Első sorban a távolság kerül kiszámolásra, ez már az előzőekben megismert \lstinline{cv::norm} függvénnyel\cite{opencv_docs} történik meg, amely a \ref{for:vector_distance} egyenlet alapján kiszámolja a két pont távolságát, ezek a \lstinline{newPosition} és \lstinline{path.back()} amelyek sorra az új hozzáadott pozíció és a \lstinline{path} lista utolsóként beállított pozícióját adják meg. A kiszámolt távolság a \lstinline{distance} változóba kerül tárolásra, amely értékkel később növelődik a \lstinline{totalDistance} változó, ennek értéke megadja a teljes megtett távolságot képpont formájában.
+\par A \lstinline{distance} értékének kiszámolása után az eltelt idő nagysága az eddig tárolt (\lstinline{previousUpdateFrame}) és a jelenlegi (\lstinline{framePosition}) képpontokat tároló változók különbségéből adódik. A \lstinline{time} változó ezt az értéket képpontok formájában tárolja, majd később a sebesség kiszámolásához a távolság osztásra kerül az eltelt idővel, amelynek eredménye a \lstinline{speed} tömbhöz hozzáadódik. Ez a művelet a kódrészlet 14. sorában látható. A sebességek tömbjét növelő sor után a kódban következik az eltárolt útvonalak növelése, amely a 15. sorban a \lstinline{path} tömb \lstinline{newPosition} értékkel való növelését teszi meg.
