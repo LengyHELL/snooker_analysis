@@ -39,3 +39,9 @@ megvalósítás
 
 problémák
 összefoglalás
+
+
+TODO:
+    neurális háló fejezet !!
+    összefoglalás dude
+    abstract
