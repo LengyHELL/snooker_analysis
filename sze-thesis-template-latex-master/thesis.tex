@@ -56,6 +56,14 @@
 %\linespread{1.25}
 \onehalfspacing
 
+\newenvironment{codewrapper}{
+    \vspace{5mm}
+    \hspace{-11mm}
+    \begin{minipage}{\linewidth}
+}{
+    \end{minipage}
+}
+
 \makeatletter %setting inline code style
 \lstdefinestyle{mystyle}{
   basicstyle=%

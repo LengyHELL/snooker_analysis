@@ -10,14 +10,12 @@ A felismerő program megvalósítása során az eddig megismert módszereket fog
 Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programnak, hogy használja a külső könyvtárakat.
 \newline A legfontosabb könyvtárak importálása a \ref{cod:import} kódsorok alapján tehető meg.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Könyvtárak importálása.}, label={cod:import}]
-#include <opencv2/opencv.hpp>
-#include <fdeep/fdeep.hpp>
+    #include <opencv2/opencv.hpp>
+    #include <fdeep/fdeep.hpp>
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par Az \lstinline{opencv.hpp} könyvtár az OpenCV által biztosított képfeldolgozási függvényeket biztosítja, a \lstinline{fdeep.hpp} könyvtár pedig a Tensorflow -al készített neurális hálózat betöltését teszi lehetővé.
 
@@ -69,9 +67,7 @@ A nyers képből a játékterület megszerzéséhez azt először be kell tölte
 \newline A fentieket a \ref{cod:maszk} kódrészlettel végzem el.
 
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A játékterület maszkolása.}, label={cod:maszk}]
 cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
 
@@ -81,7 +77,7 @@ cv::Scalar upperGreen = {65, 255, 255j};
 cv::inRange(hsv, lowerGreen, upperGreen, mask);
 cv::bitwise_and(image, image, result, mask);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A \ref{cod:maszk} kódrészletben az \lstinline{image} a bemeneti kép, amelyet a \lstinline{cv::cvtColor} függvénnyel \cite{opencv_docs} konvertálok át HSV formátumra. Ennek a függvénynek az első paramétere a bemeneti kép, a második a kimeneti kép változója, a harmadik pedig a konverzió típusa, amely ebben az esetben BGR $\rightarrow$ HSV.
 \par A BGR értékekből a HSV értékek kiszámolásához először az értéket (Value) kell kiszámolni, ez a \ref{for:HSV_V} egyenlet\cite{opencv_docs} szerint lehetséges,
@@ -139,15 +135,13 @@ cv::bitwise_and(image, image, result, mask);
 \par ahol $R$ a kimenő maszkolt kép (\lstinline{result}) $S_1$ és $S_2$ a két bemeneti kép paraméter, és $M$ a maszk. A bemenetben a kép azért szerepel kétszer egymás után, mert a \ref{for:maszk_alkalmazas} függvényben láthatóan a két bemenő paraméter közt egy bit szintű 'és' művelet történik, amennyiben a maszk nem nulla. Ennek eredményeképp az eredeti kép adódik vissza amelyen maszkolt képpontok feketével szerepelnek. Ez azért történik, mert bit szinten ha két megegyező elem közt történik 'és' művelet, akkor az eredmény szintén megegyezik a két elemmel. Ennek a folyamatnak a kimenetele látható a már előzőleg tárgyalt \ref{fig:bemeneti_kep_mask} ábrán.
 \par A maszkolt kép megszerzése után elvégezhető az éldetektálás, amelyet megelőz egy szürkeárnyalatolás.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Szürkeárnyalatolás és éldetektálás.}, label={cod:gray_and_canny}]
 cv::cvtColor(result, imageGray, cv::COLOR_BGR2GRAY);
 
 cv::Canny(imageGray, edges, 200, 100);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A szürkeárnyalati konverziót a már megismert \lstinline{cv::cvtColor} függvénnyel \cite{opencv_docs} végzem el a \ref{cod:gray_and_canny} kódrészlet alapján, majd ezután megkeressem az éleket a képen Canny éldetektálás \cite{opencv_docs, canny_edge_detection} (\lstinline{cv::Canny}) segítségével.
 \newline A Canny éldetektálás általában több lépésre bontható szét, ezek lehetnek:
@@ -171,9 +165,7 @@ cv::Canny(imageGray, edges, 200, 100);
 
 \par A következő lépésben a bináris képen lefuttatásra kerül egy kontúrkereső algoritmus \cite{SUZUKI198532}, majd a kapott kontúroknak vesszem a konvex körvonalát, azok egyszerűsítése, esetleges konkáv alakzatok megszüntetése érdekében. Ezek után feltételezve, hogy a kontúrok közül a legnagyobb a játékterület, az kiválasztható a körvonalak közül.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Kontúrok keresése.}, label={cod:contours}]
 cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
@@ -185,17 +177,15 @@ for(auto& contour : contours) {
 
 std::sort(contours.begin(), contours.end(), areaComparator);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Sorba rendezéshez használt segédfüggvény.}, label={cod:contours_helper}]
 bool areaComparator(const std::vector<cv::Point>& lhs, const std::vector<cv::Point>& rhs) {
     return cv::contourArea(lhs) > cv::contourArea(rhs);
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A \ref{cod:contours} kódrészletben található \lstinline{cv::findContours} függvény \cite{opencv_docs, SUZUKI198532} egy határkövetéses algoritmussal kigyűjti a kontúrokat. Ezek a kontúrok a képen található képpont koordináták láncolatából állnak össze. A kontúrok körvonala a \lstinline{cv::convexHull} függvény \cite{opencv_docs, SKLANSKY198279} segítségével kapható meg. Ez az algoritmus a kontúrok koordinátáinak láncolatát használja, majd a kontúrt egy konvex körvonallal határolja, ugyancsak koordináták láncolatai formájában reprezentálva.
 \par A fenti művelet elsőre feleslegesnek tűnhet, hiszen a keresett asztal kontúrja előreláthatólag nem konkáv, a művelet elvégzése mégis fontos, hiszen így egyszerűsíthető az alakzat (kontúr koordináta láncolat pontjainak csökkentése), ezzel a folytatólagos műveleteket felgyorsítva.
@@ -245,9 +235,7 @@ bool areaComparator(const std::vector<cv::Point>& lhs, const std::vector<cv::Poi
 \par ahol a \ref{for:vector_intersection_denominator} képletben a $D$ a \ref{for:vector_intersection_point_x} és \ref{for:vector_intersection_point_y} képletekben a nevező kiszámolásához biztosít könnyebb átláthatóságot, $(P_x, P_y)$ a kiszámolt metszéspont, $(x_1, y_1)$, $(x_2, y_2)$, $(x_3, y_3)$ és $(x_4, y_4)$ pedig a négy pont, amelyek a két egyenest határozzák meg, itt ezek közül az első kettő az egyik, a második kettő a másik egyeneshez tartozik.
 \par A fenti egyenletek megvalósítása a \ref{cod:intersection} kódrészletben látható,
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Metszéspont kereső algoritmus.}, label={cod:intersection}]
 bool parallel = false;
 cv::Point p1, p2, p3, p4, intersection;
@@ -266,7 +254,7 @@ if (!parallel) {
     intersection = cv::Point(t1 / d, t2 / d);
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par ahol \lstinline{p1}, \lstinline{p2}, \lstinline{p3}, \lstinline{p4} a fent megismert négy koordináta, \lstinline{d} a kiszámolt nevező, \lstinline{t1} és \lstinline{t2} pedig segédváltozók a számlálók tárolásához. A kódrészlet 7. - 9. soraiban látható, hogy abban az esetben ha \lstinline{d} nagyon kicsi, a metszéspont nem lesz kiszámolva. Ez azért van, mert a \ref{for:vector_intersection_denominator} függvényben kiszámolt nevező, $D = 0$ esetén a két egyenes párhuzamos, és ilyenkor nincs metszéspont.
 \par A folyamat végeredményeképp kapott kép a \ref{fig:bemeneti_kep_quad} ábrán látható.
@@ -283,9 +271,7 @@ Ahhoz, hogy az asztal a kontúr segítségével kivágható legyen a képből, s
 \par A folyamat első részeként a kapott, négy koordinátából álló kontúr pontjait rendezni kell. A pontokat bal felső, jobb felső, jobb alsó és bal alsó pontok szerint kell sorba rendezni.
 \newline Az átrendezéshez a \ref{cod:atrendezes} kódot használom,
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Átrendező algoritmus.}, label={cod:atrendezes}]
 std::vector<int> sums, diffs;
 
@@ -300,15 +286,13 @@ src.push_back(quad[std::min_element(diffs.begin(), diffs.end()) - diffs.begin()]
 src.push_back(quad[std::max_element(sums.begin(), sums.end()) - sums.begin()]);
 src.push_back(quad[std::max_element(diffs.begin(), diffs.end()) - diffs.begin()]);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par ahol az előzőleg kiszámolt négy metszéspontot felhasználva, ahhoz hogy meg tudjam állapítani a azok relatív helyzetét, készítek az egyes pontokból összegeket (\lstinline{sums}) és különbségeket (\lstinline{diffs}), amelyek az egyes koordináták $x$ és $y$ összetevőinek összegeiből vagy különbségeiből állnak. Ezekből az összegek és különbségekből megállapítható a pontok helyzete, tehát például a bal felső koordinátát az összegek közül a legkisebb érték, a bal alsót a különbségek közül a legnagyobb érték határozza meg, és így a többi koordinátát is. A fent említett műveletek a kódrészlet 9. - 11. soraiban láthatóak.
 \par Az előző művelet után a sorba rendezett koordináták meghatározzák a transzformációhoz szükséges mátrix kiszámításához a forrás (\lstinline{src}) értékeket. A transzformációhoz szükség van még a célértékekre is.
 \newline A célértékek a \ref{cod:destination} kód soraival adhatóak meg,
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A kimeneti értékek megadása.}, label={cod:destination}]
 std::vector<cv::Point2f> dst;
 
@@ -320,20 +304,18 @@ dst.push_back(cv::Point(width, 0));
 dst.push_back(cv::Point(width, height));
 dst.push_back(cv::Point(0, height));
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par itt a cél kép méretei egy érték páros formájában szerepelnek a \lstinline{width} és \lstinline{height} változókban. Az értékekből egyet való levonás az indexelés végett szükséges. A szélesség és magasság értékekkel ezután meg lehet adni a célértékeket a transzformációs mátrix elkészítéséhez, ezek a \lstinline{dst} változóba kerülnek.
 \par A transzformáció végrehajtásához mindezek után már csak a transzformációs mátrix elkészítésére van szükség, majd a transzformáció végrehajtására.
 \newline Ezek a \ref{cod:pers_transform} kódrészlettel hajthatóak végre,
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A transzformáció végrehajtása.}, label={cod:pers_transform}]
 cv::Mat M = cv::getPerspectiveTransform(src, dst);
 cv::warpPerspective(image, warp, M, cv::Size(width, height));
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par itt \lstinline{M} a transzformációs mátrix, amely a \lstinline{cv::getPerspectiveTransform} függvénnyel \cite{opencv_docs} kapható meg a forrás és célértékek megadásával. A függvény Gauss-elimináció \cite{grcar2011mathematicians} segítségével számol ki egy $3\times3$ méretű mátrixot, amelyet a \lstinline{cv::warpPerspective} függvénnyel \cite{opencv_docs} alkalmazok az \lstinline{image} változóban tárolt képre az \lstinline{M} mátrix és \lstinline{cv::Size(width, height)} méret megadásával. A transzformáló függvény lineáris interpolációt \cite{blu0401interpolation} használ alapértelmezett esetben az intenzitás értékek meghatározásához, a torzított kép a \lstinline{warp} változóban kerül tárolásra.
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
@@ -350,9 +332,7 @@ A körök detektálásához az ún. Hough transzformációt (Hough Transformatio
 \par Az algoritmus lefutása után a metszéspontok megadják az egyes körök pozícióját, amelyeket könnyedén tárolni lehet egy listában.
 \par A körkereső algoritmus a programkód formájában a \ref{cod:hough_circle} kódrészletben látható.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A körkereső algoritmus.}, label={cod:hough_circle}]
 cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
@@ -374,7 +354,7 @@ cv::HoughCircles(
     minRadius,
     maxRadius);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A kódrészletben a Hough transzformációt a \lstinline{cv::HoughCircles} függvény\cite{opencv_docs} végzi el, ennek első paramétere egy szürkeárnyalatos kép, amely a kivágott asztal konvertálásával kerül bele a \lstinline{gray} változóba, a konvertálás a már megismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs} megy végbe.
 \par A második paraméter a megtalált körök listáját tartalmazza, a harmadik az előzőleg megismert Hough transzformációs módszert\cite{opencv_docs,hough_transform,YUEN199071} adja meg a \lstinline{cv::HOUGH_GRADIENT} kulcsszóval, továbbá a negyedik paraméter a folyamathoz felhasznált képet skálázza. A skálázas az eredeti kép felbontást \lstinline{1} értékkel nem változtatja, \lstinline{2} értékkel felére csökkenti azt, fordított arányosságnak megfelelően\cite{opencv_docs}. Ez a paraméter a folyamat lefutásának gyorsítását teszi lehetővé, azonban, akárcsak a jelenlegi esetben, kisebb körök detektálásához jobb az eredeti felbontás megtartása.
@@ -406,9 +386,7 @@ A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy v
 \par Az ábrán látható, hogy a mintaillesztés nehezen különbözteti meg az egyes színeket, szinte minden színhez 65\% -nál nagyobb megegyezési értékeket ad. Ez jól szemlélteti, hogy miért nem kerül közvetlen felhasználásra az alkalmazásban, azomban a adatkészlet készítéséhez felhasználható.
 \par A mintaillesztés az alkalmazásban a \ref{cod:template_match} kódrészlet formájában kerül felhasználásra.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A mintaillesztés menete.}, label={cod:template_match}]
 if (hsvMode) {
     cv::Mat templateHSV;
@@ -422,7 +400,7 @@ else {
 double maxValue;
 cv::minMaxLoc(result, NULL, &maxValue);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par Itt a \lstinline{hsvMode} logikai változó megadja, hogy a mintaillesztést BGR vagy HSV színformátumban végezze el a kód. A HSV módban történő illesztésnél szimplán átkonvertálom a mintát HSV formátumra a már jól ismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs}, majd mind a két módban úgyanúgy végrehajtom a mintaillesztést a \lstinline{cv::matchTemplate} függvénnyel\cite{kaehler2016learning,opencv_docs}. A függvény a \ref{for:cross_correlation} egyenlet alapján számolja ki a minta egyezőségét egy adott pontban. Paraméterként meg kell adni neki a képet amelyre a mintát szeretnénk illeszteni (\lstinline{cutImageBGR} vagy \lstinline{cutImageHSV}), a mintát (\lstinline{templateHSV} vagy \lstinline{templateBGR}), a kimeneti változónkat, amely ebben az esetben a \lstinline{result} mátrix, továbbá meg kell adnunk a mintaillesztés algorimust, ezt a \lstinline{cv::TM_CCORR_NORMED} konstans teszi meg.
 \par A kapott mátrixból az egyezőséget reprezentáló értéket a \lstinline{cv::minMaxLoc} függvény\cite{opencv_docs} adja meg, ez a függvény kiszámolja, hogy a bemeneti mátrixon (\lstinline{result}) hol található és mennyi a minimum és maximum érték. Az egyezőség megállapításához ezesetben csak a maximum értékre van szükség, ezt a függvény harmadik paramétere adja meg \lstinline{maxValue} néven.
@@ -442,9 +420,7 @@ A neurális hálózattal való osztályozás hasonlóan megy végbe, mint az el�
 
 \par A felismerés végrehajtásához használt kód a \ref{cod:neural_predict} kódrészletben látható.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A neurális hálóval történő osztályozás menete.}, label={cod:neural_predict}]
 std::vector<cv::Mat> channels = {cutImageBGR, cutImageHSV};
 cv::Mat mixed;
@@ -461,7 +437,7 @@ fdeep::tensor input = fdeep::tensor_from_bytes(
 
 std::vector<float> result = model.predict(input).to_vector();
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A \ref{cod:neural_predict} kódrészletben elsősorban a kép intenzitás érékeit fűzzük össze, ezt a \lstinline{cv::merge} függvény\cite{opencv_docs} teszi meg, ami bemenetként kéri a két képet (BGR és HSV) egy tömb formájában, a kimenetet pedig a \lstinline{mixed} változóba teszi bele.
 \par A hat színcsatornával rendelkező \lstinline{mixed} mátrixot ezekután egy ún. tensor típusra kell átalakítani, amelyet a neurális hálózat közvetlenül kezelni tud. Az átalakításhoz a \lstinline{fdeep::tensor_from_bytes} függvény\cite{frugally_deep2016} szükséges, amelynek paraméterként át kell adni a mátrixunk memóriacímének mutatóját (\lstinline{mixed.ptr()}), ez alapján tudja megállapítani a függvény az adatok helyzetét a memóriában, továbbá még át kell adni a mátrix szélességét (\lstinline{mixed.cols}), magasságát (\lstinline{mixed.rows}) és a színcsatornák számát (\lstinline{mixed.channels}). Az utolsó két paraméter megadja, hogy az intenzitás értékek 0 és 1 értékek közé legyenek skálázva. Ez egy 0 és 255 értékek között mozgó intenzitásnál, például 130, $\frac{130}{255} \approx 0.51$ értéket jelent.
@@ -471,9 +447,7 @@ std::vector<float> result = model.predict(input).to_vector();
 \subsection{A piros labdák megkülönböztetése}
 A piros labdák megkülönböztetéséhez azoknak a szín mellett adni kell egy másodlagos azonosító paramétert, ez az alkalmazásban azonosító számok formájában történik, a számok 0 és 14 (15db) között helyezkedhetnek el. A piros golyók beazonosításához a \ref{subsection:piros_labda_cimke} részben ismertetett módszereket fogom használni, amelyhez először kiszámolom minden a frissen felismert és az előzőleg felismert piros golyók közt a távolságot. A távolság kiszámolásához használt kód a \ref{cod:red_ball_distance} kódrészletet használom.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolság kiszámolása.}, label={cod:red_ball_distance}]
 std::vector<BallMovement> movements;
 
@@ -486,35 +460,29 @@ for (Ball& ball : balls) {
     }
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el tudjuk érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
 \par A tömb elkészítése után az algoritmus további részei előtt sorba kell rendezni az értékeket távolságok szerint. A sorba rendezést a \ref{cod:red_ball_sort} kódrészlet mutatja, a kódrészletben használt összehasonlító segédfüggvényt pedig a \ref{cod:red_ball_sort_helper} kódrészlet ábrázolja.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Piros golyók közti távolságok sorba rendezése.}, label={cod:red_ball_sort}]
 std::sort(movements.begin(), movements.end(), distanceComparator);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_sort_helper}]
 bool distanceComparator(const BallMovement& lhs, const BallMovement& rhs) {
     return lhs.distance < rhs.distance;
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par Az összehasonlító segédfüggvény a \lstinline{BallMovement} osztály \lstinline{distance} paraméterét használja összehasonlítási alapnak.
 \par A következő lépés a folyamat legkomplexebb része, ez a rész legfőképp egy ciklusból áll, amivel végighalad az algoritmus a sorba rendezett \lstinline{movements} tömbön és megvizsgálja, hogy az adott elemhez tartozó azonosítók renezésre kerültek-e. A ciklus és vizsgálat rész a \ref{cod:red_ball_set_cycle} kódrészletben látható.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A \ref{cod:red_ball_sort} kódrészletben használt összehasonlító segédfüggvény.}, label={cod:red_ball_set_cycle}]
 std::vector<int*> setPrevious;
 std::vector<int*> setCurrent;
@@ -526,13 +494,11 @@ for (const auto& movement : movements) {
     }
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par A ciklus kezdete előtt elhelyezkedő \lstinline{setPrevious} és \lstinline{setCurrent} változók tárolják azon golyók azonosítójának listáját amelyek már beállításra kerültek a folyamat során. A beállítottság állapotának vizsgálata az \lstinline{if} állításban látható, itt az \lstinline{std::count} függvény segítségével ellenőrizhető, hogy a ciklus adott eleméhez (\lstinline{movement}) tartozó azonosítók közül valamelyik megtalálható-e a beállított azonosítók közt. Amennyiben nem található meg, lefut az algoritmus belső része, ez a \ref{cod:red_ball_set_switch} kódrészletben látható.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={A piros golyók azonosítójának beállítása.}, label={cod:red_ball_set_switch}]
 for (int i = 0; i < movements.size(); i++) {
     if (*movements[i].currentId == *movement.previousId) {
@@ -545,7 +511,7 @@ for (int i = 0; i < movements.size(); i++) {
 setPrevious.push_back(movement.previousId);
 setCurrent.push_back(movement.currentId);
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par Itt egyértelműnek tűnhet, mivel feltételezhetően az elmozdulás ugyanazon golyót írja le két különböző időpillanatban, hogy szimplán át kell állítani a jelenlegi azonosítót (\lstinline{movement.currentId}) az előző azonosítóra (\lstinline{movement.previousId}), viszont az elmozdulások listájában szerepelhetnek még olyan elemek, amelyeknél a jelenlegi azonosító (\lstinline{movements[i].currentId}) megegyezik az általunk beállítani kívánt azonosítóval (\lstinline{movement.previousId}), ezért le kell ellenőrizni, hogy az elmozdulások közt létezik-e ilyen elem, majd annak azonosítóját kicserélni a vizsgált elemünk jelenlegi azonosítójával. Ez az ellenőrzés a kód 1. - 5. soraiban történik egy ciklus formájában, majd a 7. sorban kerül beállításra az adott elem jelenlegi azonosítója.
 \par Az előző lépés bonyolultnak tűnhet, viszont lényegében egy cserét hajt végre az algoritmus az előzőleg és a jelenleg meghatározott azonosítóval rendelkező elemek közt. A folyamat végeztével mind a jelenlegi, mind az előző azonosító bekerül a számukra megfelelő ellenőrzött elemek listájába a 9. és 10. sorban látható módon.
@@ -553,9 +519,7 @@ setCurrent.push_back(movement.currentId);
 \subsection{Az elemzési szempontok kiszámolása}
 A \textbf{távolságok, útvonalak és pillanatnyi sebesség kiszámolását} a \ref{section:classes_and_structs} részben ismertetett \lstinline{BallLabel} osztály \lstinline{addPosition} függvénye (bővebben \ref{section:classes_and_structs} rész) végzi el, az útvonalakat a \ref{cod:calculate_analyzed} kódrészletben látható módon számolja ki.
 
-\vspace{5mm}
-\hspace{-10mm}
-\begin{minipage}{\linewidth}
+\begin{codewrapper}
 \begin{lstlisting}[language=C++, numbers=left, caption={Egy golyó megtett távolságának, útvonalának és sebességének kiszámolása.}, label={cod:calculate_analyzed}]
 void addPosition(const cv::Point& newPosition, const int& framePosition) {
     if (path.empty() || speed.empty()) {
@@ -577,8 +541,50 @@ void addPosition(const cv::Point& newPosition, const int& framePosition) {
     previousUpdateFrame = framePosition;
 }
 \end{lstlisting}
-\end{minipage}
+\end{codewrapper}
 
 \par Az \lstinline{addPosition} függvény bemenetként megkapja a frissített golyó pozícióját (\lstinline{newPosition}) és a feldolgozott videó pillanatnyi képkockáját (\lstinline{framePosition}). A belső részben található egy \lstinline{if} állítás, itt ellenőrzésre kerül, hogy az adott golyóhoz tartozó adatok rendelkeznek-e értékkel, amennyiben nem, kezdő értékek lesznek hozzáadva mind a \lstinline{speed}, mind a \lstinline{path} tömbökhöz, ez a 3. és 4. sorokban látható. Abban az esetben amikor már léteznek a kezdeti elemek, az \lstinline{else} ágban első sorokban (7. - 9.) ellenőrzésre kerül, hogy a jelenlegi képkocka megegyezik-e a következő képkockával, ha megegyezik, akkor a függvény automatikusan visszatér új elemek hozzáadása nélkül, ha nem egyezik meg, akkor elkezdődik az egyes szempontok kiszámolása.
 \par Első sorban a távolság kerül kiszámolásra, ez már az előzőekben megismert \lstinline{cv::norm} függvénnyel\cite{opencv_docs} történik meg, amely a \ref{for:vector_distance} egyenlet alapján kiszámolja a két pont távolságát, ezek a \lstinline{newPosition} és \lstinline{path.back()} amelyek sorra az új hozzáadott pozíció és a \lstinline{path} lista utolsóként beállított pozícióját adják meg. A kiszámolt távolság a \lstinline{distance} változóba kerül tárolásra, amely értékkel később növelődik a \lstinline{totalDistance} változó, ennek értéke megadja a teljes megtett távolságot képpont formájában.
 \par A \lstinline{distance} értékének kiszámolása után az eltelt idő nagysága az eddig tárolt (\lstinline{previousUpdateFrame}) és a jelenlegi (\lstinline{framePosition}) képpontokat tároló változók különbségéből adódik. A \lstinline{time} változó ezt az értéket képpontok formájában tárolja, majd később a sebesség kiszámolásához a távolság osztásra kerül az eltelt idővel, amelynek eredménye a \lstinline{speed} tömbhöz hozzáadódik. Ez a művelet a kódrészlet 14. sorában látható. A sebességek tömbjét növelő sor után a kódban következik az eltárolt útvonalak növelése, amely a 15. sorban a \lstinline{path} tömb \lstinline{newPosition} értékkel való növelését teszi meg.
+\par A \textbf{lelökött golyók észlelése} a kód egy másik részében található, ahol egy ciklusban végighalad az algoritmus az előző képkockán felismert golyókon, ha egy adott golyót nem talál meg a jelenlegi képkockán, feltételezi, hogy az egy zsebbe került. Az eltűnt golyók ellenőrzéséért felelős kód a \ref{cod:score_check} kódrészletben található.
+
+\begin{codewrapper}
+\begin{lstlisting}[language=C++, numbers=left, caption={Golyók potenciális lelökésének vizsgálata.}, label={cod:score_check}]
+for (const Ball& previousBall : previousBalls) {
+    bool possiblyScored = true;
+
+    for (const Ball& ball : balls) {
+        if ((ball.id == previousBall.id) && (ball.label == previousBall.label)) {
+            possiblyScored = false;
+            break;
+        }
+    }
+
+    ...
+}
+\end{lstlisting}
+\end{codewrapper}
+
+\par Itt az előzőleg felismert golyók a \lstinline{previousBalls} a jelenleg felismert golyók a \lstinline{balls} tömbben vannak, a folyamat a \lstinline{possiblyScored} változó beállításával törénik, ez a változó jelzi, hogy olyan golyóról beszélhetünk-e amely potenciálisan le lett lökve. Az imént említett logikai változó kezdetben igaz értéket vesz fel, majd amennyiben egy előzőleg vizsgált golyó (\lstinline{previousBall}) azonosítója és címkéje létezik a frissen felismert golyók (\lstinline{ball}) közt, akkor feltehetőleg nem került zsebbe, és ezért hamisra állítódik a \lstinline{possiblyScored} változó.
+\par Abban az esetben amikor a \lstinline{possiblyScored} változó nem lesz hamisra állítva, további lépésekben meg kell vizsgálni a golyót, hogy melyik zsebbe lett elhelyezve, ugyanis ha minden zsebtől távol helyezkedik el a golyó utolsó felismert pontja, akkor az algoritmus nem számol pontot a golyó elhelyezéséért. A zsebeket ellenőrző algoritmus kódja a \ref{cod:pocket_check} kódrészletben látható.
+
+\begin{codewrapper}
+\begin{lstlisting}[language=C++, numbers=left, caption={Potenciálisan lelökött golyó elhelyezett zsebének vizsgálata.}, label={cod:pocket_check}]
+if (possiblyScored) {
+    std::vector<cv::Point> pockets = {
+        {0, 0},         {0, width / 2},         {0, width},
+        {height, 0},    {height, width / 2},    {height, width}
+    };
+
+    for (const cv::Point& pocket : pockets) {
+        float distance = cv::norm(pocket - previousBall.getCenter());
+        if (distance < 36) {
+            std::cerr << "scored " << previousBall.label << '\n';
+        }
+    }
+}
+\end{lstlisting}
+\end{codewrapper}
+
+\par Ez a kódrészlet az előző \ref{cod:score_check} kódrészletnek a 11. sorában jelzett üres helyen hajtódik végre, itt először a \ref{section:analyze_gameplay} résznél ismertetett \ref{tab:zsebek_kiszamolasa} táblázat alapján készül egy lista a zsebek helyzetéről a szélesség (\lstinline{width}) és magasság (\lstinline{height}) értékek segítségével, ez a \lstinline{pockets} változóban kerül tárolásra. A zsebek helyzetén végigiterálva, amennyiben a golyó és a zseb pozícióinak távolsága egy bizonyos szint alá esik, feltételezhetjük, hogy a golyó el lett helyzve a zsebbe. A két pont távolsága a már jól ismert \lstinline{cv::norm} függvény\cite{opencv_docs} segítségével számolható ki, a távolság értéke a \lstinline{distance} változóban kerül tárolásra az ellenőrzéshez, amely a 9. sorban látható vizsgálattal történik meg.
+\par A golyó lelökésekor a fenti algoritmus egy üzenetet ír ki a konzolablakba ami megadja, hogy milyen színű golyó lett lelökve, ez a kód 10. sorában látható.
