@@ -44,5 +44,3 @@ problémák
 TODO:
     data log és átlagsebesség !!
     felhasználói dokumentáció
-    összefoglalás dude
-    abstract
