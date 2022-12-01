@@ -95,6 +95,7 @@
 
 % Ábrák listája - a word-ös sablon szerint szükséges
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\pagenumbering{gobble}
 \clearpage\phantomsection
 \listoffigures
 \addcontentsline{toc}{chapter}{\listfigurename}
@@ -117,10 +118,12 @@
 %\include{content/analizalas}
 \include{content/betanitas}
 \include{content/megvalositas}
+\include{content/hasznalat}
 %\include{content/introduction}
 %\include{content/thesis-format}
 %\include{content/latex-tools}
 %\include{content/template-usage}
+\include{content/osszefoglalas}
 
 
 % Köszönetnyilvánítás - opcionális
@@ -138,8 +141,8 @@
 % Irodalomjegyzék
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \clearpage\phantomsection
-\bibliography{bib/mybib}
 \addcontentsline{toc}{chapter}{\bibname}
+\bibliography{bib/mybib}
 
 
 % Függelékek
