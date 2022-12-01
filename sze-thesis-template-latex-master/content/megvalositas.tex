@@ -19,7 +19,7 @@ Ahhoz hogy a függvények megfeleően működjenek, meg kell mondani a programna
 
 \par Az \lstinline{opencv.hpp} könyvtár az OpenCV által biztosított képfeldolgozási függvényeket biztosítja, a \lstinline{fdeep.hpp} könyvtár pedig a Tensorflow -al készített neurális hálózat betöltését teszi lehetővé.
 
-\section{Egyénileg készített osztályok és struktúrák}
+\section{Megvalósításhoz használt osztályok és struktúrák}
 \label{section:classes_and_structs}
 Ebben a részletben szeretném ismertetni a további részekben szereplő kódrészletben felbukkanó osztályokat és struktúrákat. Ezeket az objektumokat könnyebb felhasználás és átláthatóság szempontjából készítettem, hogy felgyorsítsam és megkönnyítsem a program olvashatóságát és megérthetőségét.
 \par Az első ilyen objektum egy enum \textbf{\lstinline{BallLabel}} névvel, ez az enum a golyók lehetséges színét tárolja. Enum formájában megelőzhető sztringek és szimpla egész számok használata, amelyek hosszú távon hibákhoz és bonyodalmakhoz vezethetnek. Az enum felépítése a \ref{fig:balllabel_enum} ábrán látható.
@@ -72,7 +72,7 @@ A nyers képből a játékterület megszerzéséhez azt először be kell tölte
 cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
 
 cv::Scalar lowerGreen = {50, 50, 70};
-cv::Scalar upperGreen = {65, 255, 255j};
+cv::Scalar upperGreen = {65, 255, 255};
 
 cv::inRange(hsv, lowerGreen, upperGreen, mask);
 cv::bitwise_and(image, image, result, mask);
@@ -206,9 +206,9 @@ bool areaComparator(const std::vector<cv::Point>& lhs, const std::vector<cv::Poi
     \label{for:green_formula}
 \end{equation}
 
-\par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhető, hogy a $k = n+1$ elem megegyezik a $k = 0$ elemmel.
+\par ahol $n$ az óramutató járásával ellentétesen rendezett kontúr koordináták száma, $(x_k, y_k)$ a $k$ adik koordináta $x$ és $y$ pozíciója, és feltételezhető, hogy a $k = n$ elem megegyezik a $k = 0$ elemmel.
 
-\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúr téglalaphoz hasonló alajkának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában legyen kivágva a kép, meg kell keresni azt a négyszöget, amely a kontúrt határolja. Erre egy olyan algoritmust készítettem, amely megkeresi a kontúr koordináták segítségével a négy leghosszabb oldalt, majd kiszámolja ezek metszéspontját. A négy leghosszabb oldal használata feltételezi, hogy a kép közel felső nézetből készült az asztalró, továbbá, hogy a sarkoknál jelenik meg több pont a kontúr keresés után.
+\par A \ref{fig:bemeneti_kep_contour} ábrán látható, hogy a kontúr téglalaphoz hasonló alakjának ellenére több, mint 4 pontból áll. Ahhoz hogy téglalap formájában legyen kivágva a kép, meg kell keresni azt a négyszöget, amely a kontúrt határolja. Erre egy olyan algoritmust készítettem, amely megkeresi a kontúr koordináták segítségével a négy leghosszabb oldalt, majd kiszámolja ezek metszéspontját. A négy leghosszabb oldal használata feltételezi, hogy a kép közel felső nézetből készült az asztalró, továbbá, hogy a sarkoknál jelenik meg több pont a kontúr keresés után.
 \par Az oldalhosszok számolása a \ref{for:vector_distance} képlet alapján megy végbe,
 
 \begin{equation}
@@ -360,7 +360,7 @@ cv::HoughCircles(
 \par A második paraméter a megtalált körök listáját tartalmazza, a harmadik az előzőleg megismert Hough transzformációs módszert\cite{opencv_docs,hough_transform,YUEN199071} adja meg a \lstinline{cv::HOUGH_GRADIENT} kulcsszóval, továbbá a negyedik paraméter a folyamathoz felhasznált képet skálázza. A skálázas az eredeti kép felbontást \lstinline{1} értékkel nem változtatja, \lstinline{2} értékkel felére csökkenti azt, fordított arányosságnak megfelelően\cite{opencv_docs}. Ez a paraméter a folyamat lefutásának gyorsítását teszi lehetővé, azonban, akárcsak a jelenlegi esetben, kisebb körök detektálásához jobb az eredeti felbontás megtartása.
 \par A \lstinline{minRadius} (minimális sugár), \lstinline{maxRadius} (maximális sugár) és \lstinline{minDistance} (minimális távolság) paraméterek megadják a keresett körök tulajdonságait, így növelhető az algoritmus teljesítménye és csökkenthető a duplikációk előfordulása.
 \par A \lstinline{circleThreshold} paraméter az algoritmus kezdeti feldolgozó lépéseként végrehajtott Canny éldetektálás felső paraméterét adja meg, az alsó paraméter ennek felével lesz egyenlő. Ez a Canny éldetektálás a \ref{section:megv_asztal_kontur} alfejezetben megismert módszerrel megegyezően hajtódik végre. Végül pedig, a \lstinline{circlePerfectness} névvel ellátott paraméter a körkeresés pontosságát szabályozza, minél kisebb az érték, annál kisebb a pontosság, amely több hamisan felismert kört eredményezhet.
-\par A folyamat lefutása után a körök pozíciója és mérete ismeretében jelölni tudjuk őket a kivágott képen. Ezt szemlélteti a \ref{chapter:program_tervezes} fejezet \ref{fig:talalt_korok} ábrája.
+\par A folyamat lefutása után a körök pozíciója és mérete ismeretében jelölni lehet azokat a kivágott képen. Ezt szemlélteti a \ref{chapter:program_tervezes} fejezet \ref{fig:talalt_korok} ábrája.
 
 \section{A detektált körök osztályozása}
 
@@ -374,12 +374,12 @@ A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy v
 \end{equation}
 
 \par A képletben az $x$ és $y$ az eredeti képen vizsgált terület bal felső sarkát, $x'$ és $y'$ a minta képnek az adott képpontját, $T$ a minta képet és $I$ az eredeti képet jelöli. Ez a folyamat egy kernelhez hasonlóan végigpásztázza a képet, majd a kapott érték mátrixból eldönthető, hogy mely pontokon volt a legnagyobb egyezés a mintával.
-\par Ebben az esetben viszont nem a teljes asztal képén vizsgálom a minta egyezését, hanem csak egy adott felismert körhöz tartozó metszeten. Ilyenkor a minta és a kép mérete megegyezik, ezért a kapott mártirxból a legnagyobb érték fogja reprezentálni az egyezőség mértékét. Ahhoz, hogy egy adott körnek meg lehessen állapítani a színét, az összes mintával hasonítani kell, majd a művelet végén a legnagyobb értékkel rendelkező illesztéshez tartozó minta színe fogja megadni a felismert kör színét. A \ref{fig:adatkeszlet} ábrán látható sárga golyóhoz hasonló adatra elvégzett mintaillesztés eredményeit a \ref{fig:mintaillesztes_eredmeny} ábra mutatja.
+\par Ebben az esetben viszont nem a teljes asztal képén vizsgálom a minta egyezését, hanem csak egy adott felismert körhöz tartozó metszeten. Ilyenkor a minta és a kép mérete megegyezik, ezért a kapott mártirxból a legnagyobb érték fogja reprezentálni az egyezőség mértékét. Ahhoz, hogy egy adott körnek meg lehessen állapítani a színét, az összes mintával hasonítani kell, majd a művelet végén a legnagyobb értékkel rendelkező illesztéshez tartozó minta színe fogja megadni a felismert kör színét. A \ref{fig:adatkeszlet} ábrán látható adatkészlethez hasonló adatra elvégzett mintaillesztés eredményeit a \ref{fig:mintaillesztes_eredmeny} ábra mutatja.
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=140mm, keepaspectratio]{figures/match_values.png}
-    \caption{Egy sárga golyó kivágott képére elvégzett mintaillesztések eredményei.}
+    \includegraphics[width=150mm, keepaspectratio]{figures/confusion_matrix_tm.png}
+    \caption{Egyes színekhez számolt mintaillesztések eredményei confusion mátrixban.}
     \label{fig:mintaillesztes_eredmeny}
 \end{figure}
 
@@ -394,7 +394,7 @@ if (hsvMode) {
     cv::matchTemplate(cutImageHSV, templateHSV, result, cv::TM_CCORR_NORMED);
 }
 else {
-    cv::matchTemplate(cutImageBGR, templateBGR, result, cv::TM_CCORR_NORMED);
+    cv::matchTemplate(cutImageBGR, templateBGR, result, cv::TM_CCORR_NORMED); 835 -80 722 -25
 }
 
 double maxValue;
@@ -402,19 +402,19 @@ cv::minMaxLoc(result, NULL, &maxValue);
 \end{lstlisting}
 \end{codewrapper}
 
-\par Itt a \lstinline{hsvMode} logikai változó megadja, hogy a mintaillesztést BGR vagy HSV színformátumban végezze el a kód. A HSV módban történő illesztésnél szimplán átkonvertálom a mintát HSV formátumra a már jól ismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs}, majd mind a két módban úgyanúgy végrehajtom a mintaillesztést a \lstinline{cv::matchTemplate} függvénnyel\cite{kaehler2016learning,opencv_docs}. A függvény a \ref{for:cross_correlation} egyenlet alapján számolja ki a minta egyezőségét egy adott pontban. Paraméterként meg kell adni neki a képet amelyre a mintát szeretnénk illeszteni (\lstinline{cutImageBGR} vagy \lstinline{cutImageHSV}), a mintát (\lstinline{templateHSV} vagy \lstinline{templateBGR}), a kimeneti változónkat, amely ebben az esetben a \lstinline{result} mátrix, továbbá meg kell adnunk a mintaillesztés algorimust, ezt a \lstinline{cv::TM_CCORR_NORMED} konstans teszi meg.
+\par Itt a \lstinline{hsvMode} logikai változó megadja, hogy a mintaillesztést BGR vagy HSV színformátumban végezze el a kód. A HSV módban történő illesztésnél szimplán átkonvertálom a mintát HSV formátumra a már jól ismert \lstinline{cv::cvtColor} függvénnyel\cite{opencv_docs}, majd mind a két módban úgyanúgy végrehajtom a mintaillesztést a \lstinline{cv::matchTemplate} függvénnyel\cite{kaehler2016learning,opencv_docs}. A függvény a \ref{for:cross_correlation} egyenlet alapján számolja ki a minta egyezőségét egy adott pontban. Paraméterként meg kell adni neki a képet amelyen a mintaillesztés történik (\lstinline{cutImageBGR} vagy \lstinline{cutImageHSV}), a mintát (\lstinline{templateHSV} vagy \lstinline{templateBGR}), a kimeneti változót, amely ebben az esetben a \lstinline{result} mátrix, továbbá meg kell adni a mintaillesztés algorimust, ezt a \lstinline{cv::TM_CCORR_NORMED} konstans teszi meg.
 \par A kapott mátrixból az egyezőséget reprezentáló értéket a \lstinline{cv::minMaxLoc} függvény\cite{opencv_docs} adja meg, ez a függvény kiszámolja, hogy a bemeneti mátrixon (\lstinline{result}) hol található és mennyi a minimum és maximum érték. Az egyezőség megállapításához ezesetben csak a maximum értékre van szükség, ezt a függvény harmadik paramétere adja meg \lstinline{maxValue} néven.
 \par A fenti folyamat egy körre írja le a minta illesztését, ezt ciklusban az alkalmazás végrehajtja minden potenciális goylót leíró körre.
 
 \subsection{Osztályozás neurális hálózattal}
 A neurális hálózattal való osztályozás hasonlóan megy végbe, mint az előző alfejezetben megismert mintaillesztes. Az osztályozáshoz szükség van egy betanított neurális hálózatra, amit be kell tölteni az alkalmazásba, majd továbbítani neki a kör kivágott képét. A kivágott képet átadás előtt viszont módosítani kell, mégpedig úgy, hogy megegyezzen a neurális háló kívánt bemenetével.
 \par Az általam használt modell bemenete egy olyan képet vár, amelynek hat intenzitásértéke van, azonban egy átlagos kivágott kép csupán három ilyen értékkel rendelkezik, ezek a BGR által reprezentált kék (blue), zöld (green) és piros (red) intenzitások, a másik három szükséges intenzitást a kép HSV értékei adják meg, ezek az árnyalat (hue), telítettség (saturation) és érték (value).
-\par A kép intenzitásait összefűzve, majd azt továbbítva a hálózatnak, a kapott érték egy normalizált értékek listája, ami megadja, hogy egyes színek mennyire jellemzik a bemeneti képet. A \ref{fig:mintaillesztes_eredmeny} ábrához hasonlóan látható egy sárga golyó neurális hálózatos osztályozásának eredménye a \ref{fig:neuralis_osztalyozas_eredmeny} ábrán. Az ábrán látható, hogy míg a sárga érték nem mutatható teljesen az ábra intervallumán, hisz megegyezése közel 100\% -os (99,46\%), addig a többi színhez tartozó megegyezési értékek 0.1\% alá esnek. Ez is mutatja, hogy a módszer rendkívül pontosan meg tudja jósolni egy potenciálisan felismert golyó színét.
+\par A kép intenzitásait összefűzve, majd azt továbbítva a hálózatnak, a kapott érték egy normalizált értékek listája, ami megadja, hogy egyes színek mennyire jellemzik a bemeneti képet. A \ref{fig:mintaillesztes_eredmeny} ábrához hasonlóan látható egy golyók képéből álló adatkészlet neurális hálózatos osztályozásának eredménye a \ref{fig:neuralis_osztalyozas_eredmeny} ábrán. Az ábrán látható, hogy míg egy adott szín valós értékével történő megegyezése közel 100\% -os, addig a többi színhez tartozó megegyezési értékek 0.3\% alá esnek. Ez is mutatja, hogy a módszer rendkívül pontosan meg tudja jósolni egy potenciálisan felismert golyó színét.
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=140mm, keepaspectratio]{figures/neural_values.png}
-    \caption{Egy sárga golyó kivágott képén neurális hálózattal történt becslés eredményei.}
+    \includegraphics[width=150mm, keepaspectratio]{figures/confusion_matrix_nn.png}
+    \caption{Egyes színekhez számolt neurális hálózattal történt becslés eredményei confusion mátrixban.}
     \label{fig:neuralis_osztalyozas_eredmeny}
 \end{figure}
 
@@ -439,8 +439,8 @@ std::vector<float> result = model.predict(input).to_vector();
 \end{lstlisting}
 \end{codewrapper}
 
-\par A \ref{cod:neural_predict} kódrészletben elsősorban a kép intenzitás érékeit fűzzük össze, ezt a \lstinline{cv::merge} függvény\cite{opencv_docs} teszi meg, ami bemenetként kéri a két képet (BGR és HSV) egy tömb formájában, a kimenetet pedig a \lstinline{mixed} változóba teszi bele.
-\par A hat színcsatornával rendelkező \lstinline{mixed} mátrixot ezekután egy ún. tensor típusra kell átalakítani, amelyet a neurális hálózat közvetlenül kezelni tud. Az átalakításhoz a \lstinline{fdeep::tensor_from_bytes} függvény\cite{frugally_deep2016} szükséges, amelynek paraméterként át kell adni a mátrixunk memóriacímének mutatóját (\lstinline{mixed.ptr()}), ez alapján tudja megállapítani a függvény az adatok helyzetét a memóriában, továbbá még át kell adni a mátrix szélességét (\lstinline{mixed.cols}), magasságát (\lstinline{mixed.rows}) és a színcsatornák számát (\lstinline{mixed.channels}). Az utolsó két paraméter megadja, hogy az intenzitás értékek 0 és 1 értékek közé legyenek skálázva. Ez egy 0 és 255 értékek között mozgó intenzitásnál, például 130, $\frac{130}{255} \approx 0.51$ értéket jelent.
+\par A \ref{cod:neural_predict} kódrészletben elsősorban a kép intenzitás érékeit kell össze fűzni, ezt a \lstinline{cv::merge} függvény\cite{opencv_docs} teszi meg, ami bemenetként kéri a két képet (BGR és HSV) egy tömb formájában, a kimenetet pedig a \lstinline{mixed} változóba teszi bele.
+\par A hat színcsatornával rendelkező \lstinline{mixed} mátrixot ezekután egy ún. tensor típusra kell átalakítani, amelyet a neurális hálózat közvetlenül kezelni tud. Az átalakításhoz a \lstinline{fdeep::tensor_from_bytes} függvény\cite{frugally_deep2016} szükséges, amelynek paraméterként át kell adni a mátrix memóriacímének mutatóját (\lstinline{mixed.ptr()}), ez alapján tudja megállapítani a függvény az adatok helyzetét a memóriában, továbbá még át kell adni a mátrix szélességét (\lstinline{mixed.cols}), magasságát (\lstinline{mixed.rows}) és a színcsatornák számát (\lstinline{mixed.channels}). Az utolsó két paraméter megadja, hogy az intenzitás értékek 0 és 1 értékek közé legyenek skálázva. Ez egy 0 és 255 értékek között mozgó intenzitásnál, például 130, $\frac{130}{255} \approx 0.51$ értéket jelent.
 \par A tensor-ra alakítás után a \lstinline{model.predict} függvénnyel\cite{frugally_deep2016} lehet a hálózat jóslását elvégezni, amely kimenete a \lstinline{result} változóba kerül. A kimenet egy lebegőpontos értékek tömbje lesz, ennek elemei adják meg, hogy egyes színek mennyire jellemzik az osztályozott képet. A legnagyobb tömb elemhez tartozó index jelöli a jósolt színt, hasonlóan az előző \ref{subsection:mintaillesztes_osztalyozas} alfejezetben megismert mintaillesztéshez.
 
 \section{Játékmenet vizsgálati szempontok}
@@ -462,7 +462,7 @@ for (Ball& ball : balls) {
 \end{lstlisting}
 \end{codewrapper}
 
-\par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el tudjuk érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
+\par A kódrészletben a már előzőleg megismert egyenlet \ref{for:vector_distance} alapján a \lstinline{cv::norm} függvény\cite{opencv_docs} kiszámolja a két golyó középpontja közti távolságot, majd beleteszi azt a \lstinline{d} változóba. A következő lépés hozzáadja egy \lstinline{BallMovement} típusú \lstinline{movements} néven használt tömb (bővebben \ref{section:classes_and_structs} rész) elemeihez az imént kiszámolt távolságot, továbbá a jelenlegi (\lstinline{ball.id}) és előző (\lstinline{previousBall.id}) golyók azonosítóját memóriacímük szerint. A memóriacím szerinti átadás azért fontos, mert az érék megváltoztatásakor a változott értéket azonnal el lehet érni bárhonnan a memóriacím segítségével, hisz ilyenkor a memóriacím nem változik, csak a változó értéke.
 \par A tömb elkészítése után az algoritmus további részei előtt sorba kell rendezni az értékeket távolságok szerint. A sorba rendezést a \ref{cod:red_ball_sort} kódrészlet mutatja, a kódrészletben használt összehasonlító segédfüggvényt pedig a \ref{cod:red_ball_sort_helper} kódrészlet ábrázolja.
 
 \begin{codewrapper}
@@ -513,7 +513,7 @@ setCurrent.push_back(movement.currentId);
 \end{lstlisting}
 \end{codewrapper}
 
-\par Itt egyértelműnek tűnhet, mivel feltételezhetően az elmozdulás ugyanazon golyót írja le két különböző időpillanatban, hogy szimplán át kell állítani a jelenlegi azonosítót (\lstinline{movement.currentId}) az előző azonosítóra (\lstinline{movement.previousId}), viszont az elmozdulások listájában szerepelhetnek még olyan elemek, amelyeknél a jelenlegi azonosító (\lstinline{movements[i].currentId}) megegyezik az általunk beállítani kívánt azonosítóval (\lstinline{movement.previousId}), ezért le kell ellenőrizni, hogy az elmozdulások közt létezik-e ilyen elem, majd annak azonosítóját kicserélni a vizsgált elemünk jelenlegi azonosítójával. Ez az ellenőrzés a kód 1. - 5. soraiban történik egy ciklus formájában, majd a 7. sorban kerül beállításra az adott elem jelenlegi azonosítója.
+\par Itt egyértelműnek tűnhet, mivel feltételezhetően az elmozdulás ugyanazon golyót írja le két különböző időpillanatban, hogy szimplán át kell állítani a jelenlegi azonosítót (\lstinline{movement.currentId}) az előző azonosítóra (\lstinline{movement.previousId}), viszont az elmozdulások listájában szerepelhetnek még olyan elemek, amelyeknél a jelenlegi azonosító (\lstinline{movements[i].currentId}) megegyezik a beállítani kívánt azonosítóval (\lstinline{movement.previousId}), ezért le kell ellenőrizni, hogy az elmozdulások közt létezik-e ilyen elem, majd annak azonosítóját kicserélni a vizsgált elem jelenlegi azonosítójával. Ez az ellenőrzés a kód 1. - 5. soraiban történik egy ciklus formájában, majd a 7. sorban kerül beállításra az adott elem jelenlegi azonosítója.
 \par Az előző lépés bonyolultnak tűnhet, viszont lényegében egy cserét hajt végre az algoritmus az előzőleg és a jelenleg meghatározott azonosítóval rendelkező elemek közt. A folyamat végeztével mind a jelenlegi, mind az előző azonosító bekerül a számukra megfelelő ellenőrzött elemek listájába a 9. és 10. sorban látható módon.
 
 \subsection{Az elemzési szempontok kiszámolása}
@@ -565,7 +565,7 @@ for (const Ball& previousBall : previousBalls) {
 \end{lstlisting}
 \end{codewrapper}
 
-\par Itt az előzőleg felismert golyók a \lstinline{previousBalls} a jelenleg felismert golyók a \lstinline{balls} tömbben vannak, a folyamat a \lstinline{possiblyScored} változó beállításával törénik, ez a változó jelzi, hogy olyan golyóról beszélhetünk-e amely potenciálisan le lett lökve. Az imént említett logikai változó kezdetben igaz értéket vesz fel, majd amennyiben egy előzőleg vizsgált golyó (\lstinline{previousBall}) azonosítója és címkéje létezik a frissen felismert golyók (\lstinline{ball}) közt, akkor feltehetőleg nem került zsebbe, és ezért hamisra állítódik a \lstinline{possiblyScored} változó.
+\par Itt az előzőleg felismert golyók a \lstinline{previousBalls} a jelenleg felismert golyók a \lstinline{balls} tömbben vannak, a folyamat a \lstinline{possiblyScored} változó beállításával törénik, ez a változó jelzi, hogy olyan golyóról van-e szó amely potenciálisan le lett lökve. Az imént említett logikai változó kezdetben igaz értéket vesz fel, majd amennyiben egy előzőleg vizsgált golyó (\lstinline{previousBall}) azonosítója és címkéje létezik a frissen felismert golyók (\lstinline{ball}) közt, akkor feltehetőleg nem került zsebbe, és ezért hamisra állítódik a \lstinline{possiblyScored} változó.
 \par Abban az esetben amikor a \lstinline{possiblyScored} változó nem lesz hamisra állítva, további lépésekben meg kell vizsgálni a golyót, hogy melyik zsebbe lett elhelyezve, ugyanis ha minden zsebtől távol helyezkedik el a golyó utolsó felismert pontja, akkor az algoritmus nem számol pontot a golyó elhelyezéséért. A zsebeket ellenőrző algoritmus kódja a \ref{cod:pocket_check} kódrészletben látható.
 
 \begin{codewrapper}
@@ -586,5 +586,5 @@ if (possiblyScored) {
 \end{lstlisting}
 \end{codewrapper}
 
-\par Ez a kódrészlet az előző \ref{cod:score_check} kódrészletnek a 11. sorában jelzett üres helyen hajtódik végre, itt először a \ref{section:analyze_gameplay} résznél ismertetett \ref{tab:zsebek_kiszamolasa} táblázat alapján készül egy lista a zsebek helyzetéről a szélesség (\lstinline{width}) és magasság (\lstinline{height}) értékek segítségével, ez a \lstinline{pockets} változóban kerül tárolásra. A zsebek helyzetén végigiterálva, amennyiben a golyó és a zseb pozícióinak távolsága egy bizonyos szint alá esik, feltételezhetjük, hogy a golyó el lett helyzve a zsebbe. A két pont távolsága a már jól ismert \lstinline{cv::norm} függvény\cite{opencv_docs} segítségével számolható ki, a távolság értéke a \lstinline{distance} változóban kerül tárolásra az ellenőrzéshez, amely a 9. sorban látható vizsgálattal történik meg.
+\par Ez a kódrészlet az előző \ref{cod:score_check} kódrészletnek a 11. sorában jelzett üres helyen hajtódik végre, itt először a \ref{section:analyze_gameplay} résznél ismertetett \ref{tab:zsebek_kiszamolasa} táblázat alapján készül egy lista a zsebek helyzetéről a szélesség (\lstinline{width}) és magasság (\lstinline{height}) értékek segítségével, ez a \lstinline{pockets} változóban kerül tárolásra. A zsebek helyzetén végigiterálva, amennyiben a golyó és a zseb pozícióinak távolsága egy bizonyos szint alá esik, feltételezhető, hogy a golyó el lett helyzve a zsebbe. A két pont távolsága a már jól ismert \lstinline{cv::norm} függvény\cite{opencv_docs} segítségével számolható ki, a távolság értéke a \lstinline{distance} változóban kerül tárolásra az ellenőrzéshez, amely a 9. sorban látható vizsgálattal történik meg.
 \par A golyó lelökésekor a fenti algoritmus egy üzenetet ír ki a konzolablakba ami megadja, hogy milyen színű golyó lett lelökve, ez a kód 10. sorában látható.

@@ -42,6 +42,7 @@ problémák
 
 
 TODO:
-    neurális háló fejezet !!
+    data log és átlagsebesség !!
+    felhasználói dokumentáció
     összefoglalás dude
     abstract

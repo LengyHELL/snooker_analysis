@@ -207,20 +207,20 @@ A golyók felismert pozíciója alapján a játékmenet többféle szempontból 
 
 \subsection{A piros labdák felcímkézése}
 \label{subsection:piros_labda_cimke}
-A felismert golyók pozíciója és színe nagyszerű kiindulópont az egyes színű golyók útvonalának megállapításához, azonban a piros golyók sajátossága, hogy több is szerepel belőlük a játékterületen. Ez a tulajdonság ahhoz vezet, hogy az egyes golyókat meg kell különböztetni valahogy egymástól, hogy például azok útvonalát el tudjuk tárolni.
+A felismert golyók pozíciója és színe nagyszerű kiindulópont az egyes színű golyók útvonalának megállapításához, azonban a piros golyók sajátossága, hogy több is szerepel belőlük a játékterületen. Ez a tulajdonság ahhoz vezet, hogy az egyes golyókat meg kell különböztetni valahogy egymástól, hogy például azok útvonalát el lehessen tárolni.
 \par A probléma megoldására létezik egy elméletben viszonylag egyszerű megoldás, amely a következő lépésekből áll:
 
 \begin{itemize}
-    \item 1. Első felismerés során eltároljuk az egyes piros golyók címkéjét tetszés szerint.
-    \item 2. A következő felismerési folyamat során növekvő sorrendbe helyezzük az előzőleg és jelenleg felismert piros golyók egymástól viszonyított távolságát.
-    \item 3. Az előző lépésben kiszámolt listán sorban végighaladva beállítjuk a jelenlegi golyókhoz a címkét az előző golyók közül a hozzájuk legközelebb esővel.
+    \item 1. Első felismerés során az egyes piros golyók címkéjének tetszés szerinti eltárolása.
+    \item 2. A következő felismerési folyamat során, az előzőleg és jelenleg felismert piros golyók egymástól viszonyított távolságának növekvő sorrendbe helyezése.
+    \item 3. Az előző lépésben kiszámolt listán sorban végighaladva a jelenlegi golyókhoz a címkék beállítása, az előző golyók közül a hozzájuk legközelebb esővel.
 \end{itemize}
 
 \par A fenti módszer úgymond 'mohó' algoritmus, ezzel a számára legkedvezőbb feltételt választja minden esetben, feltételezve, hogy a golyók között a lehető legkisebb az összes elmozdulás. A módszer bizonytalannak tűnhet, azonban megfelelő minőségű videófelvétel mellett elfogadhatóan pontos eredményeket ad. A \ref{fig:felismert_asztal} ábrán látható felismert golyók ezen módszer segítségével lettek felcímkézve, és az alkalmazás megvalósításánál is a jelenlegi módszert alkalmazom.
 
 \subsection{Megtett távolság és útvonal}
 Ezt a két szempontot egy alfejezteben ismertetem, mert mindkettőjük megállapítása azonos és egyetlen alapon nyugszik, ez pedig nem más mint szimplán az adott golyók pozíciója.
-\par A teljes megtett távolság könnyen megállapítható a golyók két képkocka közti elmozdulásainak a felhalmozásával. Ahhoz viszont, hogy egy számunkra hétköznapokban is használt mértékegység formájában mutatkozzanak a távolságok, egy apró trükkre lesz szükség. A golyók elmozdulásai kezdetben megállapításkor képpont formájában szerepelnek, a \ref{section:asztal_felismeres} alfejezet tábla felismerés részénél tudjuk, hogy a felismeréshez használt asztal egy fix szélességre és magasságra van transzformálva. Ennek következtében megállapítható, hogy ha a transzformációs szélesség 1024 képpont és a szabvány snooker asztal mérete a \ref{section:snooker_altalanos} rész alapján 12 láb, avagy 365,8 cm, akkor a valóságban $1\text{ cm} = \frac{1024}{365,8} \approx 2.8\text{ képpont}$ formájában mérhető a transzformált képen.
+\par A teljes megtett távolság könnyen megállapítható a golyók két képkocka közti elmozdulásainak a felhalmozásával. Ahhoz viszont, hogy egy hétköznapokban is gyakrabban használt mértékegység formájában mutatkozzanak a távolságok, egy apró trükkre lesz szükség. A golyók elmozdulásai kezdetben megállapításkor képpont formájában szerepelnek, a \ref{section:asztal_felismeres} alfejezet tábla felismerés részénél adott, hogy a felismeréshez használt asztal egy fix szélességre és magasságra van transzformálva. Ennek következtében megállapítható, hogy ha a transzformációs szélesség 1024 képpont és a szabvány snooker asztal mérete a \ref{section:snooker_altalanos} rész alapján 12 láb, avagy 365,8 cm, akkor a valóságban $1\text{ cm} = \frac{1024}{365,8} \approx 2.8\text{ képpont}$ formájában mérhető a transzformált képen.
 \par A megtett útvonal megállapításánál nincs szükség mértékegyésg átváltásokra, hiszen az útvonal csak a felismerés közben a transzformált asztalon kerül kirajzolásra. Az útvonal a egyes képkockákon, adott golyók pozíciójának folytonos listában való eltárolásával lehetséges. A tárolt listák közül egyet a \ref{fig:golyo_utvonal} ábrán látható módon lehet megjeleníteni a transzformált képen.
 
 \begin{figure}[!ht]
@@ -232,7 +232,7 @@ Ezt a két szempontot egy alfejezteben ismertetem, mert mindkettőjük megállap
 
 \subsection{A golyó sebessége}
 Ahhoz, hogy a golyó sebességét meg lehessen állapítani, két tényezőre van szükség, ezek a megtett távolság és az ezen távolság megtételéhez szükséges idő. A megtett távolságot már az előző alfejezetben leírtak alapján megállapítható, tehát csak az eltelt időt kell kiszámolni a sebesség megállapításához. Az eltelt időt a felvétel egy paramétere, a képkockasebesség alapján fogom kiszámolni.
-\par Ha a videófelvételről tudjuk, hogy a képkockasebessége 30 fps (másodpercenként 30 képkocka), vagy másnéven, két képkocka közt eltel idő $\frac{1}{30} \approx 0.03\text{ másodperc}$, és tudjuk, hogy két képkocka közt egy adott golyó elmozdulása például 3 képpont, vagy centiméterre átszámolva 1,07 cm, akkor a golyó sebessége $\frac{1,07}{0.03} \approx 35.67 \text{ cm/s}$.
+\par Ha a videófelvételről ismert, hogy a képkockasebessége 30 fps (másodpercenként 30 képkocka), vagy másnéven, két képkocka közt eltel idő $\frac{1}{30} \approx 0.03\text{ másodperc}$, és ismert, hogy két képkocka közt egy adott golyó elmozdulása például 3 képpont, vagy centiméterre átszámolva 1,07 cm, akkor a golyó sebessége $\frac{1,07}{0.03} \approx 35.67 \text{ cm/s}$.
 \par A sebességek értékét egy listában tárolva, azokat a felismerési folyamat végén összegezve, majd leosztva a lista hosszával, kiszámolható a felismerés időtartama alatt egy adott golyóhoz tartozó átlagos sebesség.
 
 \subsection{Zsebbe helyezés megállapítása}
@@ -254,4 +254,4 @@ A zsebbe helyezett golyó megállapítása ugyancsak a golyó pozíciójának a 
 	\end{tabular}
 \end{table}
 
-\par Amennyiben a golyó utolsó ismert pozíciója elegendően közel van egy zseb pozíciójához, feltétlezhetjük, hogy a golyó az adott zsebben lett elhelyezve.
+\par Amennyiben a golyó utolsó ismert pozíciója elegendően közel van egy zseb pozíciójához, feltétlezhető, hogy a golyó az adott zsebben lett elhelyezve.

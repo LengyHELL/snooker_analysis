@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
 		drawCurrentFrame(processedImage, recognition.processedFramePosition);
 
 		cv::Mat resizedImage;
-		cv::resize(processedImage, resizedImage, cv::Size(2800, 1400));
+		cv::resize(processedImage, resizedImage, cv::Size(1400, 700));
 		cv::imshow("snooker recognition", resizedImage);
 
 		if (nextFrame) {
