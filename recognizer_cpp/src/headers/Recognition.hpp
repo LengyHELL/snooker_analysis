@@ -31,11 +31,14 @@ struct BallIndex {
 class BallData {
 private:
 	int previousUpdateFrame = 0;
+	int sumOfSpeeds = 0;
 
 public:
 	std::vector<cv::Point> path = std::vector<cv::Point>();
 	std::vector<float> speed = std::vector<float>();
+	float distance = 0;
 	float totalDistance = 0;
+	float averageSpeed = 0;
 
 	void addPosition(const cv::Point& newPosition, const int& framePosition) {
 		if (path.empty()) {
@@ -46,12 +49,16 @@ public:
 			if (framePosition <= previousUpdateFrame) {
 				return;
 			}
-			float distance = cv::norm(newPosition - path.back());
+			distance = cv::norm(newPosition - path.back());
 			float time = framePosition - previousUpdateFrame;
 
 			totalDistance += distance;
-			speed.push_back(distance / time);
 			path.push_back(newPosition);
+
+			float currentSpeed = distance / time;
+			sumOfSpeeds += currentSpeed;
+			averageSpeed = sumOfSpeeds / float(speed.size());
+			speed.push_back(currentSpeed);
 		}
 		
 		previousUpdateFrame = framePosition;

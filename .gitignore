@@ -13,6 +13,7 @@ recognizer_cpp/build_win
 recognizer_cpp/includes
 recognizer_cpp/videos
 recognizer_cpp/templates
+log.csv
 
 #latex
 /sze-thesis-template-latex-master/old_content/

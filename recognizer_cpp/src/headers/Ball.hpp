@@ -40,3 +40,5 @@ struct Ball {
 	cv::Point getTopLeft() const;
 	std::string getLabelString() const;
 };
+
+std::string labelToString(const BallLabel& label);

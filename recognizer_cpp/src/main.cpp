@@ -13,10 +13,18 @@ void drawBallData(cv::Mat& image, const BallData& ballData, const cv::Scalar& pa
 	for (int i = 1; i < ballData.path.size(); i++) {
 		cv::line(image, ballData.path[i - 1], ballData.path[i], pathColor, 2);
 	}
+	/*
+	true: 3658 mm
+    virtual: 1024 px;
+	*/
+	float distanceConverter = (3.658 / 1024);
+	float trueDistance = ballData.totalDistance * distanceConverter; //m
 
-	cv::putText(image, "Distance:" + std::to_string(ballData.totalDistance), cv::Point(0, 35), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
+	cv::putText(image, "Distance:" + std::to_string(trueDistance) + " m", cv::Point(0, 35), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
 	if (!ballData.speed.empty()) {
-		cv::putText(image, "Speed:" + std::to_string(ballData.speed.back()), cv::Point(0, 55), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
+		float trueAverageSpeed = ballData.averageSpeed * (0.03 / distanceConverter);
+
+		cv::putText(image, "Average speed:" + std::to_string(ballData.averageSpeed) + " m/s", cv::Point(0, 55), cv::FONT_HERSHEY_SIMPLEX, 0.6, pathColor);
 	}
 }
 
@@ -59,20 +67,141 @@ TrackbarWindow<int> getNNTrackbarWindow(Recognition& recognition) {
 	return nnTrackbars;
 }
 
+void createLogFile(const std::string& fileName) {
+	std::ofstream logFile(fileName);
+	
+	if (logFile.is_open()) {
+		logFile << "FRAME,";
+
+		for (int i = 0; i < 8; i++) {
+			BallLabel label = static_cast<BallLabel>(i);
+
+			std::string labelString = labelToString(label);
+			for (char& c : labelString) {
+				c = toupper(c);
+			}
+
+			if (label == BallLabel::RED) {
+				for (int j = 0; j < 15; j++) {
+					logFile << labelString << '_' << j << "_POSITION_X,";
+					logFile << labelString << '_' << j << "_POSITION_Y,";
+					logFile << labelString << '_' << j << "_DISTANCE,";
+					logFile << labelString << '_' << j << "_TOTAL_DISTANCE,";
+					logFile << labelString << '_' << j << "_SPEED,";
+					logFile << labelString << '_' << j << "_AVERAGE_SPEED";
+
+					if (i < 7 || j < 14) {
+						logFile << ',';
+					}
+				}
+			}
+			else {
+				logFile << labelString << "_POSITION_X,";
+				logFile << labelString << "_POSITION_Y,";
+				logFile << labelString << "_DISTANCE,";
+				logFile << labelString << "_TOTAL_DISTANCE,";
+				logFile << labelString << "_SPEED,";
+				logFile << labelString << "_AVERAGE_SPEED";
+
+				if (i < 7) {
+					logFile << ',';
+				}
+			}
+		}
+		logFile << '\n';
+
+		logFile.close();
+	}
+}
+
+void appendLogFile(const std::string& fileName, const Recognition& recognition) {
+	std::ofstream logFile(fileName, std::ios_base::app);
+
+	if (logFile.is_open()) {
+		logFile << recognition.processedFramePosition << ',';
+
+		for (int i = 0; i < 8; i++) {
+			BallLabel label = static_cast<BallLabel>(i);
+
+			if (label == BallLabel::RED) {
+				for (int j = 0; j < 15; j++) {
+					const BallData ballData = recognition.getBallData(label, j);
+					if (ballData.path.empty()) {
+						logFile << ",,,,,,";
+					}
+					else {
+						logFile << ballData.path.back().x << ',';
+						logFile << ballData.path.back().y << ',';
+						logFile << ballData.distance << ',';
+						logFile << ballData.totalDistance << ',';
+						logFile << ballData.speed.back() << ',';
+						logFile << ballData.averageSpeed;
+					}
+
+					if (i < 7 || j < 14) {
+						logFile << ',';
+					}
+				}
+			}
+			else {
+				const BallData ballData = recognition.getBallData(label, 0);
+				if (ballData.path.empty()) {
+					logFile << ",,,,,,";
+				}
+				else {
+					logFile << ballData.path.back().x << ',';
+					logFile << ballData.path.back().y << ',';
+					logFile << ballData.distance << ',';
+					logFile << ballData.totalDistance << ',';
+					logFile << ballData.speed.back() << ',';
+					logFile << ballData.averageSpeed;
+				}
+
+				if (i < 7) {
+					logFile << ',';
+				}
+			}
+		}
+
+		logFile << "\n";
+
+		logFile.close();
+	}
+}
+
 int main(int argc, char** argv) {
-	if (argc == 1) {
-		printf("usage: snooker_analysis <video_path> <start_frame(optional)> <end_frame(optional)>\n");
+	const int fixedArgs = 2;
+
+	if (argc < fixedArgs) {
+		printf("usage: snooker_analysis <video_path> | optional: -start_frame=<frame> -end_frame=<frame> -enable_logging\n");
 		return -1;
 	}
-
-	// 0 - 300
-	// 2100 - 2220
 	
 	int startFrame = 0;
 	int endFrame = -1;
+	bool enableLogging = false;
 
-	if (argc >= 3) { startFrame = std::stoi(argv[2]); }
-	if (argc >= 4) { endFrame = std::stoi(argv[3]); }
+	for (int i = fixedArgs; i < argc; i++) {
+		if (argv[i][0] == '-') {
+			std::string arg = argv[i];
+			int sep = arg.find('=');
+			std::string tag = arg.substr(1, sep - 1);
+			std::string value = arg.substr(sep + 1);
+
+			if (tag == "start_frame") {
+				startFrame = std::stoi(value);
+			}
+			else if (tag == "end_frame") {
+				endFrame = std::stoi(value);
+			}
+			else if (tag == "enable_logging") {
+				enableLogging = true;
+			}
+		}
+		else {
+			std::cerr << "Unable to process argument '" << argv[i] << "'";
+		}
+	}
 
 	cv::VideoCapture videoCapture(argv[1]);
 	videoCapture.set(cv::CAP_PROP_POS_FRAMES, startFrame);
@@ -104,6 +233,10 @@ int main(int argc, char** argv) {
 	bool pause = false;
 	bool nextFrame = false;
 
+	if (enableLogging) {
+		createLogFile("log.csv");
+	}
+
 	while(!stop) {
 		if (!pause || nextFrame) {
 			if (!videoCapture.read(videoFrame)) {
@@ -120,6 +253,10 @@ int main(int argc, char** argv) {
 
 		if (!pause || nextFrame) {
 			recognition.processFrameWithNN(videoFrame);
+
+			if (enableLogging) {
+				appendLogFile("log.csv", recognition);
+			}
 		}
 		cv::Mat processedImage;
 
