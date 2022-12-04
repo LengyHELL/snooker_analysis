@@ -39,8 +39,3 @@ megvalósítás
 
 problémák
 összefoglalás
-
-
-TODO:
-    data log és átlagsebesség !!
-    felhasználói dokumentáció

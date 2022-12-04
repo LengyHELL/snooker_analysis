@@ -265,9 +265,9 @@ int main(int argc, char** argv) {
 				processedImage = recognition.processedFramePath.clone();
 				drawBallData(processedImage, recognition.getBallData(static_cast<BallLabel>(shownBallColor), shownBallId));
 				break;
-			case 1: processedImage = recognition.debugFrameCanny; break;
-			case 2: processedImage = recognition.debugFrameMask; break;
-			case 3: processedImage = recognition.debugFrameCircles; break;
+			case 1: processedImage = recognition.debugFrameCanny.clone(); break;
+			case 2: processedImage = recognition.debugFrameMask.clone(); break;
+			case 3: processedImage = recognition.debugFrameCircles.clone(); break;
 		}
 
 		drawFrameTime(processedImage, duration.count());

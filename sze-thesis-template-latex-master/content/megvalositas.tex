@@ -49,7 +49,7 @@ Ebben a részletben szeretném ismertetni a további részekben szereplő kódr�
     \label{fig:ballmovement_struct}
 \end{figure}
 
-\par A \lstinline{BallMovement} osztályhoz hasonlóan létezik egy ún. \textbf{\lstinline{BallData}} osztály, amely arra szolgál, hogy a golyókon megvizsgált vizsgálati szempontokat eltárolja és kiszámolja. Ilyen szempontok a \ref{section:analyze_gameplay} részben említett elemzési szempontok, ezek közül a teljes megtett távolságot a \lstinline{totalDistance}, az útvonalat a \lstinline{path} és a pillanatnyi sebességeket a \lstinline{speed} változók tárolják. Az osztály része még a \lstinline{previousUpdateFrame} változó, ez eltárolja az adott golyóhoz a legutóbbi frissítés időpontját képkocka formájában, amelyet az \lstinline{addPosition} függvény felhasznál a két frissítés közt eltelt idő megállapítására, továbbáa az előzőekben említett változókat is beállítja vagy frissíti. A \textbf{\lstinline{BallData}} osztály felépítése a \ref{fig:balldata_class} ábrán látható.
+\par A \lstinline{BallMovement} osztályhoz hasonlóan létezik egy ún. \textbf{\lstinline{BallData}} osztály, amely arra szolgál, hogy a golyókon megvizsgált vizsgálati szempontokat eltárolja és kiszámolja. Ilyen szempontok a \ref{section:analyze_gameplay} részben említett elemzési szempontok, ezek közül a teljes megtett távolságot a \lstinline{totalDistance}, az útvonalat a \lstinline{path}, a pillanatnyi sebességeket a \lstinline{speed} és az átlagsebességet a \lstinline{averageSpeed} változók tárolják. Az osztály része még a \lstinline{previousUpdateFrame} változó, ez eltárolja az adott golyóhoz a legutóbbi frissítés időpontját képkocka formájában, amelyet az \lstinline{addPosition} függvény felhasznál a két frissítés közt eltelt idő megállapítására, továbbáa az előzőekben említett változókat is beállítja vagy frissíti. A \lstinline{sumOfSpeeds} változó az átlagsebesség kiszámolásához tárolja a sebességek összegét. A \textbf{\lstinline{BallData}} osztály felépítése a \ref{fig:balldata_class} ábrán látható.
 
 \begin{figure}[!ht]
     \centering
@@ -321,6 +321,7 @@ cv::warpPerspective(image, warp, M, cv::Size(width, height));
 \par A kivágott és torzított kép a már megismert \ref{fig:bemeneti_asztal2} ábrán látható.
 
 \section{Körkeresés}
+\label{section:find_circles}
 A körök detektálásához az ún. Hough transzformációt (Hough Transformation) fogom használni, ez a H.K. Yuen, J. Princen, J. Illingworth és J. Kittler et. al. 1990 \cite{YUEN199071} szerint abban az esetben, ha egy kör a kövekező \ref{for:hough_transform} függvénnyel írható le,
 
 \begin{equation}
@@ -379,7 +380,7 @@ A mintaillesztés ún. Kereszt Korrelációval (Normed Cross Correlation) megy v
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=150mm, keepaspectratio]{figures/confusion_matrix_tm.png}
-    \caption{Egyes színekhez számolt mintaillesztések eredményei confusion mátrixban.}
+    \caption{Mintaillesztések eredményei confusion mátrixban.}
     \label{fig:mintaillesztes_eredmeny}
 \end{figure}
 
@@ -414,7 +415,7 @@ A neurális hálózattal való osztályozás hasonlóan megy végbe, mint az el�
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=150mm, keepaspectratio]{figures/confusion_matrix_nn.png}
-    \caption{Egyes színekhez számolt neurális hálózattal történt becslés eredményei confusion mátrixban.}
+    \caption{Neurális hálózattal történt becslés eredményei confusion mátrixban.}
     \label{fig:neuralis_osztalyozas_eredmeny}
 \end{figure}
 
@@ -533,9 +534,14 @@ void addPosition(const cv::Point& newPosition, const int& framePosition) {
         float distance = cv::norm(newPosition - path.back());
         float time = framePosition - previousUpdateFrame;
 
+        float currentSpeed = distance / time;
+
         totalDistance += distance;
-        speed.push_back(distance / time);
+        speed.push_back(currentSpeed);
         path.push_back(newPosition);
+
+        sumOfSpeeds += currentSpeed;
+        averageSpeed = sumOfSpeeds / float(speed.size());
     }
     
     previousUpdateFrame = framePosition;
@@ -544,8 +550,8 @@ void addPosition(const cv::Point& newPosition, const int& framePosition) {
 \end{codewrapper}
 
 \par Az \lstinline{addPosition} függvény bemenetként megkapja a frissített golyó pozícióját (\lstinline{newPosition}) és a feldolgozott videó pillanatnyi képkockáját (\lstinline{framePosition}). A belső részben található egy \lstinline{if} állítás, itt ellenőrzésre kerül, hogy az adott golyóhoz tartozó adatok rendelkeznek-e értékkel, amennyiben nem, kezdő értékek lesznek hozzáadva mind a \lstinline{speed}, mind a \lstinline{path} tömbökhöz, ez a 3. és 4. sorokban látható. Abban az esetben amikor már léteznek a kezdeti elemek, az \lstinline{else} ágban első sorokban (7. - 9.) ellenőrzésre kerül, hogy a jelenlegi képkocka megegyezik-e a következő képkockával, ha megegyezik, akkor a függvény automatikusan visszatér új elemek hozzáadása nélkül, ha nem egyezik meg, akkor elkezdődik az egyes szempontok kiszámolása.
-\par Első sorban a távolság kerül kiszámolásra, ez már az előzőekben megismert \lstinline{cv::norm} függvénnyel\cite{opencv_docs} történik meg, amely a \ref{for:vector_distance} egyenlet alapján kiszámolja a két pont távolságát, ezek a \lstinline{newPosition} és \lstinline{path.back()} amelyek sorra az új hozzáadott pozíció és a \lstinline{path} lista utolsóként beállított pozícióját adják meg. A kiszámolt távolság a \lstinline{distance} változóba kerül tárolásra, amely értékkel később növelődik a \lstinline{totalDistance} változó, ennek értéke megadja a teljes megtett távolságot képpont formájában.
-\par A \lstinline{distance} értékének kiszámolása után az eltelt idő nagysága az eddig tárolt (\lstinline{previousUpdateFrame}) és a jelenlegi (\lstinline{framePosition}) képpontokat tároló változók különbségéből adódik. A \lstinline{time} változó ezt az értéket képpontok formájában tárolja, majd később a sebesség kiszámolásához a távolság osztásra kerül az eltelt idővel, amelynek eredménye a \lstinline{speed} tömbhöz hozzáadódik. Ez a művelet a kódrészlet 14. sorában látható. A sebességek tömbjét növelő sor után a kódban következik az eltárolt útvonalak növelése, amely a 15. sorban a \lstinline{path} tömb \lstinline{newPosition} értékkel való növelését teszi meg.
+\par Első sorban a távolság kerül kiszámolásra, ez már az előzőekben megismert \lstinline{cv::norm} függvénnyel\cite{opencv_docs} történik meg, amely a \ref{for:vector_distance} egyenlet alapján kiszámolja a két pont távolságát, ezek a \lstinline{newPosition} és \lstinline{path.back()}, amelyek sorra az új hozzáadott pozíció és a \lstinline{path} lista utolsóként beállított pozícióját adják meg. A kiszámolt távolság a \lstinline{distance} változóba kerül tárolásra, amely értékkel később növelődik a \lstinline{totalDistance} változó, ennek értéke megadja a teljes megtett távolságot képpont formájában.
+\par A \lstinline{distance} értékének kiszámolása után az eltelt idő nagysága az eddigi (\lstinline{previousUpdateFrame}) és a jelenlegi (\lstinline{framePosition}) képkockák számát tároló változók különbségéből adódik. A \lstinline{time} változó ezt az értéket ugyancsak képkockák számának formájában tárolja. A sebesség kiszámolásához a távolság osztásra kerül az eltelt idővel, kiszámolt sebesség a \lstinline{currentSpeed} változóban kerül tárolásra, amelynek értéke a \lstinline{speed} tömbhöz a későbbiekben hozzáadódik. Ez a művelet a kódrészlet 16. sorában látható. A sebességek tömbjét növelő sor után a kódban következik az eltárolt útvonalak növelése, amely a 17. sorban a \lstinline{path} tömb \lstinline{newPosition} értékkel való növelését teszi meg. Az elmozdulás és pillanatyni sebesség kiszámolása utáni kódsorok a golyó átlagsebességét számoják, úgy, hogy a sebességek összege a \lstinline{sumOfSpeeds} változóban tárolódik, amelyhez hozzáadásra kerül a jelenlegi sebesség. Ezután az átlagsebesség a sebességek összegéből és a tárolt sebességek lista méretének hányadosából kapható meg. Az átlagsebesség kiszámolása a 19. - 20. sorokban látható.
 \par A \textbf{lelökött golyók észlelése} a kód egy másik részében található, ahol egy ciklusban végighalad az algoritmus az előző képkockán felismert golyókon, ha egy adott golyót nem talál meg a jelenlegi képkockán, feltételezi, hogy az egy zsebbe került. Az eltűnt golyók ellenőrzéséért felelős kód a \ref{cod:score_check} kódrészletben található.
 
 \begin{codewrapper}
