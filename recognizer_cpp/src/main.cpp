@@ -127,7 +127,7 @@ void appendLogFile(const std::string& fileName, const Recognition& recognition) 
 				for (int j = 0; j < 15; j++) {
 					const BallData ballData = recognition.getBallData(label, j);
 					if (ballData.path.empty()) {
-						logFile << ",,,,,,";
+						logFile << ",,,,,";
 					}
 					else {
 						logFile << ballData.path.back().x << ',';
@@ -146,7 +146,7 @@ void appendLogFile(const std::string& fileName, const Recognition& recognition) 
 			else {
 				const BallData ballData = recognition.getBallData(label, 0);
 				if (ballData.path.empty()) {
-					logFile << ",,,,,,";
+					logFile << ",,,,,";
 				}
 				else {
 					logFile << ballData.path.back().x << ',';
