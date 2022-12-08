@@ -9,24 +9,32 @@
 \numberwithin{lstlisting}{section}
 %\numberwithin{tabular}{section}
 
-%----------------------------------------------------------------------------
-\section{A TeXstudio felülete}
-%----------------------------------------------------------------------------
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=150mm, keepaspectratio]{figures/TeXstudio.png}
-\caption{A TeXstudio \LaTeX-szerkesztő.} 
-\end{figure}
+\section{dataset5}
+A betanításhoz használt adatkészlet, színenként külön mappákba helyezve, összesen nagyjából 12000 képfájlt tartalmaz.
 
-%----------------------------------------------------------------------------
-\clearpage\section{Válasz az ,,Élet, a világmindenség, meg minden'' kérdésére}
-%----------------------------------------------------------------------------
-A Pitagorasz-tételből levezetve
-\begin{align}
-c^2=a^2+b^2=42.
-\end{align}
-A Faraday-indukciós törvényből levezetve
-\begin{align}
-\rot E=-\frac{dB}{dt}\hspace{1cm}\longrightarrow \hspace{1cm}
-U_i=\oint\limits_\mathbf{L}{\mathbf{E}\mathbf{dl}}=-\frac{d}{dt}\int\limits_A{\mathbf{B}\mathbf{da}}=42.
-\end{align}
+\section{train2.py}
+A neurális hálózat betanításához használt Python szkript.
+
+\section{Cut.hpp}
+A kivágott képek kezeléséhez létrehozott osztályt tartalmazó fájl.
+
+\section{Section.hpp}
+A szakaszok kezeléséhez létrehozott osztályt tartalmazó fájl.
+
+\section{BallLabel.hpp}
+A golyók színének enum értékeit tartalmazó fájl.
+
+\section{Template.hpp}
+A mintaillesztés során használt mintákhoz létrehozott osztály fájlja.
+
+\section{Ball.hpp és Ball.cpp}
+A golyókat és azok függvényeit tartalmazó osztály header fájlja és implementációja.
+
+\section{Recognition.hpp és Recognition.cpp}
+A felismerési folyamatok függvényeit tartalmazó forrásfájl header deklaráció és implementáció.
+
+\section{TrackbarWindow.hpp}
+A finomhangolási paraméterek megjelenítéséhez használt segédosztály fájlja.
+
+\section{main.cpp}
+A felismerő fő folyamatait egybefoglaló központi forráskód. A felismerés folyamatához használt többi programrész ebből a fájlból kerül meghívásra.

@@ -26,8 +26,8 @@
 \newcommand{\konzulensAVezeteknev}{Hollósi}
 \newcommand{\konzulensAKeresztnev}{János}
 \newcommand{\konzulensBMegszolitas}{}
-\newcommand{\konzulensBVezeteknev}{}
-\newcommand{\konzulensBKeresztnev}{}
+\newcommand{\konzulensBVezeteknev}{Gerendás}
+\newcommand{\konzulensBKeresztnev}{Péter}
 \newcommand{\konzulensCMegszolitas}{}
 \newcommand{\konzulensCVezeteknev}{}
 \newcommand{\konzulensCKeresztnev}{}
@@ -88,22 +88,25 @@
 \include{include/titlepage}
 
 
+% Témaválasztó, Nyilatkozat és Kivonat
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\include{include/temavalaszto} % témaválasztó adatlap
+\include{include/declaration} % ez legenerálódik magától a fentebb megadott adatok alapján
+\include{content/abstract} %TODO ezt át kell írnod
+
+
 % Tartalomjegyzék
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\pagenumbering{gobble}
 \tableofcontents\vfill
 \addtocontents{toc}{\protect\thispagestyle{empty}}
+
 
 % Ábrák listája - a word-ös sablon szerint szükséges
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \clearpage\phantomsection
-\pagenumbering{gobble}
 \listoffigures
 \addcontentsline{toc}{chapter}{\listfigurename}
-
-% Nyilatkozat és Kivonat
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\include{include/declaration} % ez legenerálódik magától a fentebb megadott adatok alapján
-\include{content/abstract} %TODO ezt át kell írnod
 
 
 % A dolgozat lényegi része
@@ -141,14 +144,14 @@
 % Irodalomjegyzék
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \clearpage\phantomsection
-\pagenumbering{gobble}
+%\pagenumbering{gobble}
 \addcontentsline{toc}{chapter}{\bibname}
 \bibliography{bib/mybib}
 
 
 % Függelékek
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%\include{content/appendices}
+\include{content/appendices}
 
 %\label{page:last}
 \end{document}

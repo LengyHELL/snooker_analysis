@@ -3,6 +3,7 @@
 /new.png
 .vscode
 /old_scripts
+signature.png
 
 #classifier
 classifier/models
